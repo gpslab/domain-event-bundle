@@ -1,0 +1,27 @@
+{
+    "name": "gpslab/domain-event-bundle",
+    "license": "MIT",
+    "type": "library",
+    "homepage": "https://github.com/gpslab/domain-event-bundle",
+    "description": "Bundle to create the domain layer of your DDD application",
+    "autoload": {
+        "psr-4": {
+            "GpsLab\\Bundle\\DomainEvent\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "GpsLab\\Bundle\\DomainEvent\\Tests\\": "tests/"
+        }
+    },
+    "require": {
+        "php": ">=5.5.0",
+        "gpslab/domain-event": "~1.0",
+        "symfony/framework-bundle": "~2.3|~3.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "~4.8",
+        "scrutinizer/ocular": "~1.3",
+        "satooshi/php-coveralls": "^1.0"
+    }
+}
