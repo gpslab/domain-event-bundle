@@ -33,7 +33,7 @@ class GpsLabDomainEventExtension extends Extension
         $config = $this->mergeDefaultConfig((array) $config);
 
         $container->setAlias('domain_event.locator', $this->getLocatorRealName($config['locator']));
-        $container->setAlias('domain_event.name_resolver', $config['name_resolver']);
+        $container->setAlias('domain_event.name_resolver', $this->getNameResolverRealName($config['name_resolver']));
 
         $container->setParameter('domain_event.doctrine.handle_events', $config['doctrine']['handle_events']);
         $container->setParameter('domain_event.doctrine.connections', $config['doctrine']['connections']);
