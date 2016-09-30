@@ -13,6 +13,7 @@ use Doctrine\Common\Persistence\Event\LifecycleEventArgs;
 use Doctrine\ORM\Events;
 use GpsLab\Domain\Event\Aggregator\AggregateEventsInterface;
 use GpsLab\Domain\Event\Bus\Bus;
+use Symfony\Bridge\Doctrine\RegistryInterface;
 
 class DoctrineSubscriber implements EventSubscriber
 {
@@ -28,9 +29,11 @@ class DoctrineSubscriber implements EventSubscriber
 
     /**
      * @param Bus $bus
+     * @param RegistryInterface $doctrine
      * @param array $events
+     * @param array $connections
      */
-    public function __construct(Bus $bus, array $events)
+    public function __construct(Bus $bus, RegistryInterface $doctrine, array $events, array $connections)
     {
         $this->bus = $bus;
         $this->events = array_intersect([
@@ -39,6 +42,13 @@ class DoctrineSubscriber implements EventSubscriber
             Events::preRemove,
             Events::preFlush,
         ], $events);
+
+        foreach ($connections as $connection) {
+            $doctrine
+                ->getEntityManager($connection)
+                ->getEventManager()
+                ->addEventSubscriber($this);
+        }
     }
 
     /**
