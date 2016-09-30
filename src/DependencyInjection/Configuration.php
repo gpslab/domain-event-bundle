@@ -21,6 +21,11 @@ class Configuration implements ConfigurationInterface
      * gpslab_domain_event:
      *     locator: 'named_event'
      *     name_resolver: 'event_class'
+     *     handle_doctrine_events:
+     *         - 'prePersist'
+     *         - 'preUpdate'
+     *         - 'preRemove'
+     *         - 'preFlush'
      *
      * @return TreeBuilder
      */
@@ -36,6 +41,9 @@ class Configuration implements ConfigurationInterface
                     ->scalarNode('name_resolver')
                         ->cannotBeEmpty()
                         ->defaultValue('event_class')
+                    ->end()
+                    ->arrayNode('handle_doctrine_events')
+                        ->prototype('scalar')
                     ->end()
                 ->end()
             ->end()

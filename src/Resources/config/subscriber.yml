@@ -1,0 +1,6 @@
+services:
+    domain_event.subscriber:
+        class: GpsLab\Bundle\DomainEvent\Event\Subscriber\DoctrineSubscriber
+        arguments: [ '@domain_event.bus', '%domain_event.handle_doctrine_events%' ]
+        tags:
+            - { name: doctrine.event_subscriber, connection: default }
