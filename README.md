@@ -11,9 +11,9 @@
 Domain event bundle
 ===================
 
-Bundle to create the domain layer of your DDD application.
+Bundle to create the domain layer of your **DDD** application.
 
-This bundle is a wrapper for [gpslab/domain-event](https://github.com/gpslab/domain-event), look it for more details.
+This **Symfony** bundle is a wrapper for [gpslab/domain-event](https://github.com/gpslab/domain-event), look it for more details.
 
 ## Installation
 
