@@ -8,7 +8,6 @@
  */
 namespace GpsLab\Bundle\DomainEvent\DependencyInjection;
 
-use Doctrine\ORM\Events;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Loader;
@@ -31,12 +30,9 @@ class GpsLabDomainEventExtension extends Extension
         $config = $this->processConfiguration(new Configuration(), $configs);
 
         $container->setAlias('domain_event.locator', $this->getLocatorRealName($config['locator']));
-        $container->setAlias('domain_event.name_resolver', $this->getNameResolverRealName($config['name_resolver']));
+        $container->setAlias('domain_event.name_resolver', (array)$config['name_resolver']);
 
-        $container->setParameter(
-            'domain_event.handle_doctrine_events',
-            $this->filterDoctrineEvents((array)$config['handle_doctrine_events'])
-        );
+        $container->setParameter('domain_event.handle_doctrine_events', (array)$config['handle_doctrine_events']);
     }
 
     /**
@@ -65,22 +61,5 @@ class GpsLabDomainEventExtension extends Extension
         }
 
         return $name;
-    }
-
-    /**
-     * @param array $events
-     *
-     * @return array
-     */
-    protected function filterDoctrineEvents(array $events)
-    {
-        $available_events = [
-            Events::prePersist,
-            Events::preUpdate,
-            Events::preRemove,
-            Events::preFlush,
-        ];
-
-        return array_intersect($available_events, $events);
     }
 }

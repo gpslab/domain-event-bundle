@@ -10,6 +10,7 @@ namespace GpsLab\Bundle\DomainEvent\Event\Subscriber;
 
 use Doctrine\Common\EventSubscriber;
 use Doctrine\Common\Persistence\Event\LifecycleEventArgs;
+use Doctrine\ORM\Events;
 use GpsLab\Domain\Event\Aggregator\AggregateEventsInterface;
 use GpsLab\Domain\Event\Bus\Bus;
 
@@ -32,7 +33,12 @@ class DoctrineSubscriber implements EventSubscriber
     public function __construct(Bus $bus, array $events)
     {
         $this->bus = $bus;
-        $this->events = $events;
+        $this->events = array_intersect([
+            Events::prePersist,
+            Events::preUpdate,
+            Events::preRemove,
+            Events::preFlush,
+        ], $events);
     }
 
     /**
