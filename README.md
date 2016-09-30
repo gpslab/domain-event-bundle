@@ -40,15 +40,16 @@ gpslab_domain_event:
     name_resolver: 'event_class'
 
     doctrine:
-        # pull and publish domain events on Doctrine events
-        # support 'prePersist', 'preUpdate', 'preRemove' and 'preFlush' events
-        # as a default handle only 'preFlush' Doctrine event
+        # Pull and publish domain events on Doctrine events
+        # Support 'prePersist', 'preUpdate', 'preRemove' and 'preFlush' events
+        # As a default handle only 'preFlush' Doctrine event
         handle_events:
             - 'preFlush'
 
-        # you can specify several Doctrine connections
+        # You can specify several Doctrine connections
+        # As a default used 'default' Doctrine connections
         connections:
-            - 'default' # default connection
+            - 'default'
 ```
 
 ## Usage
