@@ -113,11 +113,16 @@ class SendEmailOnPurchaseOrderCreated implements ListenerInterface
 
     public function handle(EventInterface $event)
     {
-        $this->mailer->send('to@you.com', sprintf(
-            'Purchase order created at %s for customer #%s',
-            $event->getCreateAt()->format('Y-m-d'),
-            $event->getCustomer()->getId()
-        ));
+        $message = $this->mailer
+            ->createMessage()
+            ->setTo('recipient@example.com')
+            ->setBody(sprintf(
+                'Purchase order created at %s for customer #%s',
+                $event->getCreateAt()->format('Y-m-d'),
+                $event->getCustomer()->getId()
+            ));
+
+        $this->mailer->send($message);
     }
 }
 ```
