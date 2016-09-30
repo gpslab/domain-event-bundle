@@ -106,7 +106,7 @@ class SendEmailOnPurchaseOrderCreated implements ListenerInterface
 {
     private $mailer;
 
-    public function __construct($mailer)
+    public function __construct(\Swift_Mailer $mailer)
     {
         $this->mailer = $mailer;
     }
