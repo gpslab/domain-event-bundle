@@ -162,10 +162,11 @@ foreach($events as $event) {
 You can auto publish domain events
 
 ```php
+// get default EntityManager from DI container
+$em = $this->get('doctrine.orm.default_entity_manager');
+
 // do what you need to do on your Domain
 $purchase_order = new PurchaseOrder(new Customer(1));
-
-$em = $this->get('doctrine')->getManager();
 
 $em->persist($purchase_order);
 $em->flush(); // here your listener will be invoked
