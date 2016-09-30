@@ -8,8 +8,17 @@
  */
 namespace GpsLab\Bundle\DomainEvent;
 
+use GpsLab\Bundle\DomainEvent\DependencyInjection\Compiler\NamedEventListenerPass;
+use GpsLab\Bundle\DomainEvent\DependencyInjection\Compiler\VoterListenerPass;
+use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\HttpKernel\Bundle\Bundle;
 
 class GpsLabDomainEventBundle extends Bundle
 {
+    public function build(ContainerBuilder $container)
+    {
+        parent::build($container);
+        $container->addCompilerPass(new NamedEventListenerPass());
+        $container->addCompilerPass(new VoterListenerPass());
+    }
 }
