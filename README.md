@@ -8,10 +8,12 @@
 [![StyleCI](https://styleci.io/repos/69584393/shield?branch=master)](https://styleci.io/repos/69584393)
 [![License](https://img.shields.io/github/license/gpslab/domain-event-bundle.svg?maxAge=3600)](https://github.com/gpslab/domain-event-bundle)
 
-Domain event
-============
+Domain event bundle
+===================
 
-Library to create the domain layer of your DDD application
+Bundle to create the domain layer of your DDD application.
+
+This bundle is a wrapper for [gpslab/domain-event](https://github.com/gpslab/domain-event), look it for more details.
 
 ## Installation
 
@@ -19,6 +21,148 @@ Pretty simple with [Composer](http://packagist.org), run:
 
 ```sh
 composer require gpslab/domain-event-bundle
+```
+
+## Configuration
+
+Example configuration
+
+```yml
+gpslab_domain_event:
+    # Event listener locator
+    # Support 'voter', 'named_event' or custom service
+    # As a default used 'named_event'
+    locator: 'named_event'
+
+    # Evant name resolver used in 'named_event' event listener locator
+    # Support 'event_class', 'event_class_last_part', 'named_event' or a custom service
+    # As a default used 'event_class'
+    name_resolver: 'event_class'
+
+    doctrine:
+        # pull and publish domain events on Doctrine events
+        # support 'prePersist', 'preUpdate', 'preRemove' and 'preFlush' events
+        # as a default handle only 'preFlush' Doctrine event
+        handle_events:
+            - 'preFlush'
+
+        # you can specify several Doctrine connections
+        connections:
+            - 'default' # default connection
+```
+
+## Usage
+
+Create a domain event
+
+```php
+use GpsLab\Domain\Event\EventInterface;
+
+class PurchaseOrderCreatedEvent implements EventInterface
+{
+    private $customer;
+    private $create_at;
+
+    public function __construct(Customer $customer, \DateTimeImmutable $create_at)
+    {
+        $this->customer = $customer;
+        $this->create_at = $create_at;
+    }
+
+    public function getCustomer()
+    {
+        return $this->customer;
+    }
+
+    public function getCreateAt()
+    {
+        return $this->create_at;
+    }
+}
+```
+
+Raise your event
+
+```php
+use GpsLab\Domain\Event\Aggregator\AbstractAggregateEvents;
+
+final class PurchaseOrder extends AbstractAggregateEvents
+{
+    public function __construct(Customer $customer)
+    {
+        $this->raise(new PurchaseOrderCreatedEvent($customer, new \DateTimeImmutable()));
+    }
+}
+```
+
+Create listener
+
+```php
+use GpsLab\Domain\Event\EventInterface;
+use GpsLab\Domain\Event\Listener\ListenerInterface;
+
+class SendEmailOnPurchaseOrderCreated implements ListenerInterface
+{
+    private $mailer;
+
+    public function __construct($mailer)
+    {
+        $this->mailer = $mailer;
+    }
+
+    public function handle(EventInterface $event)
+    {
+        $this->mailer->send('to@you.com', sprintf(
+            'Purchase order created at %s for customer #%s',
+            $event->getCreateAt()->format('Y-m-d'),
+            $event->getCustomer()->getId()
+        ));
+    }
+}
+```
+
+Register event listener
+
+```yml
+services:
+    domain_event.listener.purchase_order.send_email_on_created:
+        class: SendEmailOnPurchaseOrderCreated
+        arguments: [ '@mailer' ]
+        tags:
+            - { name: domain_event.named_event_listener, event: PurchaseOrderCreatedEvent }
+```
+
+Publish events in listener
+
+```php
+// get event bus from DI container
+$bus = $this->get('domain_event.bus');
+
+// do what you need to do on your Domain
+$purchase_order = new PurchaseOrder(new Customer(1));
+
+// this will clear the list of event in your AggregateEvents so an Event is trigger only once
+$events = $purchase_order->pullEvents();
+
+// You can have more than one event at a time.
+foreach($events as $event) {
+    $bus->publish($event);
+}
+
+// You can use one method
+//$bus->pullAndPublish($purchase_order);
+```
+
+You can auto publish domain events
+
+```php
+// do what you need to do on your Domain
+$purchase_order = new PurchaseOrder(new Customer(1));
+
+$em = $this->get('doctrine')->getManager();
+
+$em->persist($purchase_order);
+$em->flush(); // here your listener will be invoked
 ```
 
 ## License
