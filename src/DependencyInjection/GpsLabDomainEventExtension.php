@@ -98,11 +98,11 @@ class GpsLabDomainEventExtension extends Extension
 
         $config['doctrine']['handle_events'] = array_merge([
             Events::preFlush,
-        ], (array) $config['doctrine'],['handle_events']);
+        ], (array) $config['doctrine']['handle_events']);
 
         $config['doctrine']['connections'] = array_merge([
             'default',
-        ], (array) $config['doctrine'],['connections']);
+        ], (array) $config['doctrine']['connections']);
 
         return $config;
     }
