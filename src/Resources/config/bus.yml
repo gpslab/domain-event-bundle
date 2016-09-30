@@ -1,0 +1,4 @@
+services:
+    domain_event.bus:
+        class: GpsLab\Domain\Event\Bus\Bus
+        arguments: [ '@domain_event.locator' ]

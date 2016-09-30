@@ -1,0 +1,9 @@
+services:
+    domain_event.locator.voter:
+        class: GpsLab\Domain\Event\Listener\Locator\VoterLocator
+        public: false
+
+    domain_event.locator.named_event:
+        class: GpsLab\Domain\Event\Listener\Locator\NamedEventLocator
+        arguments: [ '@domain_event.name_resolver' ]
+        public: false
