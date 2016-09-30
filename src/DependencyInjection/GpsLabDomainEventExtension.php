@@ -30,7 +30,7 @@ class GpsLabDomainEventExtension extends Extension
 
         $config = $this->processConfiguration(new Configuration(), $configs);
 
-        $config = $this->mergeDefaultConfig((array)$config);
+        $config = $this->mergeDefaultConfig((array) $config);
 
         $container->setAlias('domain_event.locator', $this->getLocatorRealName($config['locator']));
         $container->setAlias('domain_event.name_resolver', $config['name_resolver']);
@@ -68,7 +68,7 @@ class GpsLabDomainEventExtension extends Extension
     }
 
     /**
-     * Default config:
+     * Merge default config.
      *
      * gpslab_domain_event:
      *     locator: 'named_event'
@@ -94,15 +94,15 @@ class GpsLabDomainEventExtension extends Extension
         $config['doctrine'] = array_merge([
             'handle_events' => [],
             'connections' => [],
-        ], (array)$config['doctrine']);
+        ], (array) $config['doctrine']);
 
         $config['doctrine']['handle_events'] = array_merge([
             Events::preFlush,
-        ], (array)$config['doctrine'],['handle_events']);
+        ], (array) $config['doctrine'],['handle_events']);
 
         $config['doctrine']['connections'] = array_merge([
             'default',
-        ], (array)$config['doctrine'],['connections']);
+        ], (array) $config['doctrine'],['connections']);
 
         return $config;
     }
