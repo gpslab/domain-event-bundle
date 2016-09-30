@@ -16,7 +16,7 @@
     },
     "require": {
         "php": ">=5.5.0",
-        "gpslab/domain-event": "~1.0",
+        "gpslab/domain-event": "~1.1",
         "symfony/framework-bundle": "~2.3|~3.0"
     },
     "require-dev": {
