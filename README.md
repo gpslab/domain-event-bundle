@@ -28,7 +28,7 @@ composer require gpslab/domain-event-bundle
 Example configuration
 
 ```yml
-gpslab_domain_event:
+domain_event:
     # Event listener locator
     # Support 'voter', 'named_event' or custom service
     # As a default used 'named_event'
