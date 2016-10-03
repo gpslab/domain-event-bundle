@@ -147,6 +147,63 @@ foreach($events as $event) {
 //$bus->pullAndPublish($purchase_order);
 ```
 
+### If you want use VoterLocator, you must
+
+Change configuration
+
+```yml
+domain_event:
+    locator: 'voter'
+```
+
+Implement `VoterListenerInterface` in your event listener
+
+```php
+use GpsLab\Domain\Event\EventInterface;
+use GpsLab\Domain\Event\Listener\ListenerInterface;
+
+class SendEmailOnPurchaseOrderCreated implements VoterListenerInterface
+{
+    private $mailer;
+
+    public function __construct(\Swift_Mailer $mailer)
+    {
+        $this->mailer = $mailer;
+    }
+
+    public function isSupportedEvent(EventInterface $event);
+    {
+        // you can add more conditions
+        return $event instanceof PurchaseOrderCreatedEvent;
+    }
+
+    public function handle(EventInterface $event)
+    {
+        $message = $this->mailer
+            ->createMessage()
+            ->setTo('recipient@example.com')
+            ->setBody(sprintf(
+                'Purchase order created at %s for customer #%s',
+                $event->getCreateAt()->format('Y-m-d'),
+                $event->getCustomer()->getId()
+            ));
+
+        $this->mailer->send($message);
+    }
+}
+```
+
+Register event listener
+
+```yml
+services:
+    domain_event.listener.purchase_order.send_email_on_created:
+        class: SendEmailOnPurchaseOrderCreated
+        arguments: [ '@mailer' ]
+        tags:
+            - { name: domain_event.voter_listener }
+```
+
 ## License
 
 This bundle is under the [MIT license](http://opensource.org/licenses/MIT). See the complete license in the file: LICENSE
