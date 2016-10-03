@@ -38,18 +38,6 @@ gpslab_domain_event:
     # Support 'event_class', 'event_class_last_part', 'named_event' or a custom service
     # As a default used 'event_class'
     name_resolver: 'event_class'
-
-    doctrine:
-        # Pull and publish domain events on Doctrine events
-        # Support 'prePersist', 'preUpdate', 'preRemove' and 'preFlush' events
-        # As a default handle only 'preFlush' Doctrine event
-        handle_events:
-            - 'preFlush'
-
-        # You can specify several Doctrine connections
-        # As a default used 'default' Doctrine connections
-        connections:
-            - 'default'
 ```
 
 ## Usage
@@ -157,19 +145,6 @@ foreach($events as $event) {
 
 // You can use one method
 //$bus->pullAndPublish($purchase_order);
-```
-
-You can auto publish domain events
-
-```php
-// get default EntityManager from DI container
-$em = $this->get('doctrine.orm.default_entity_manager');
-
-// do what you need to do on your Domain
-$purchase_order = new PurchaseOrder(new Customer(1));
-
-$em->persist($purchase_order);
-$em->flush(); // here your listener will be invoked
 ```
 
 ## License

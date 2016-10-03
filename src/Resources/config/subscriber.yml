@@ -1,9 +1,0 @@
-services:
-    domain_event.subscriber:
-        class: GpsLab\Bundle\DomainEvent\Event\Subscriber\DoctrineSubscriber
-        arguments:
-            - '@domain_event.bus'
-            - '@doctrine'
-            - '%domain_event.doctrine.handle_events%'
-            - '%domain_event.doctrine.connections%'
-        public: false
