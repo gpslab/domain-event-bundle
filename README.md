@@ -28,7 +28,7 @@ composer require gpslab/domain-event-bundle
 Example configuration
 
 ```yml
-domain_event:
+gps_lab_domain_event:
     # Event listener locator
     # Support 'voter', 'named_event' or custom service
     # As a default used 'named_event'
@@ -152,7 +152,7 @@ foreach($events as $event) {
 Change configuration
 
 ```yml
-domain_event:
+gps_lab_domain_event:
     locator: 'voter'
 ```
 

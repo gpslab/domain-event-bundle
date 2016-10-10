@@ -18,7 +18,7 @@ class Configuration implements ConfigurationInterface
      *
      * Example config:
      *
-     * domain_event:
+     * gps_lab_domain_event:
      *     locator: 'named_event'
      *     name_resolver: 'event_class'
      *
@@ -27,7 +27,7 @@ class Configuration implements ConfigurationInterface
     public function getConfigTreeBuilder()
     {
         return (new TreeBuilder())
-            ->root('domain_event')
+            ->root('gps_lab_domain_event')
                 ->children()
                     ->scalarNode('locator')
                         ->cannotBeEmpty()
