@@ -25,7 +25,7 @@ class NamedEventListenerPass implements CompilerPassInterface
 
         $definition = $container->findDefinition('domain_event.locator.named_event');
         foreach ($container->findTaggedServiceIds('domain_event.named_event_listener') as  $id => $attributes) {
-            $definition->addMethodCall('register', [new Reference($id), $attributes[0]['event']]);
+            $definition->addMethodCall('register', [$attributes[0]['event'], new Reference($id)]);
         }
     }
 }
