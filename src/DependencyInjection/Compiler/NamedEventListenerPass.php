@@ -10,7 +10,6 @@ namespace GpsLab\Bundle\DomainEvent\DependencyInjection\Compiler;
 
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
-use Symfony\Component\DependencyInjection\Reference;
 
 class NamedEventListenerPass implements CompilerPassInterface
 {
@@ -26,7 +25,7 @@ class NamedEventListenerPass implements CompilerPassInterface
         $definition = $container->findDefinition('domain_event.locator.named_event');
         foreach ($container->findTaggedServiceIds('domain_event.named_event_listener') as $id => $attributes) {
             foreach ($attributes as $attribute) {
-                $definition->addMethodCall('register', [$attribute['event'], new Reference($id)]);
+                $definition->addMethodCall('registerService', [$attribute['event'], $id]);
             }
         }
     }

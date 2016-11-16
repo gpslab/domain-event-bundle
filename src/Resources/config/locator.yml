@@ -4,6 +4,6 @@ services:
         public: false
 
     domain_event.locator.named_event:
-        class: GpsLab\Domain\Event\Listener\Locator\NamedEventLocator
-        arguments: [ '@domain_event.name_resolver' ]
+        class: GpsLab\Domain\Event\Listener\Locator\ContainerAwareLocator
+        arguments: [ '@domain_event.name_resolver', '@service_container' ]
         public: false
