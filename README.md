@@ -25,7 +25,7 @@ composer require gpslab/domain-event-bundle
 
 Add GpsLabDomainEventBundle to your application kernel
 
-```
+```php
 // app/AppKernel.php
 public function registerBundles()
 {
