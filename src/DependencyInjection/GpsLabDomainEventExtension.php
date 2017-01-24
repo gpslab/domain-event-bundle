@@ -59,4 +59,12 @@ class GpsLabDomainEventExtension extends Extension
 
         return $name;
     }
+
+    /**
+     * @return string
+     */
+    public function getAlias()
+    {
+        return 'gpslab_domain_event';
+    }
 }
