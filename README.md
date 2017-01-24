@@ -23,6 +23,20 @@ Pretty simple with [Composer](http://packagist.org), run:
 composer require gpslab/domain-event-bundle
 ```
 
+Add GpsLabDomainEventBundle to your application kernel
+
+```php
+// app/AppKernel.php
+public function registerBundles()
+{
+    return array(
+        // ...
+        new GpsLab\Bundle\DomainEvent\GpsLabDomainEventBundle(),
+        // ...
+    );
+}
+```
+
 ## Configuration
 
 Example configuration
