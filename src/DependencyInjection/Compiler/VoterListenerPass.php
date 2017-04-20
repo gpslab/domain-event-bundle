@@ -24,9 +24,19 @@ class VoterListenerPass implements CompilerPassInterface
             return;
         }
 
-        $definition = $container->findDefinition('domain_event.locator.voter');
+        $current_locator = $container->findDefinition('domain_event.locator');
+        $voter_locator = $container->findDefinition('domain_event.locator.voter');
+
+        // register services only if current locator is voter locator
+        if ($voter_locator === $current_locator) {
+            foreach ($container->findTaggedServiceIds('domain_event.listener') as  $id => $attributes) {
+                $voter_locator->addMethodCall('register', [new Reference($id)]);
+            }
+        }
+
+        // BC: get services from old tag
         foreach ($container->findTaggedServiceIds('domain_event.voter_listener') as  $id => $attributes) {
-            $definition->addMethodCall('register', [new Reference($id)]);
+            $voter_locator->addMethodCall('register', [new Reference($id)]);
         }
     }
 }

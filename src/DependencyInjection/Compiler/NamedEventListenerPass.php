@@ -23,10 +23,22 @@ class NamedEventListenerPass implements CompilerPassInterface
             return;
         }
 
-        $definition = $container->findDefinition('domain_event.locator.named_event');
+        $current_locator = $container->findDefinition('domain_event.locator');
+        $named_event_locator = $container->findDefinition('domain_event.locator.named_event');
+
+        // register services only if current locator is named event locator
+        if ($named_event_locator === $current_locator) {
+            foreach ($container->findTaggedServiceIds('domain_event.listener') as $id => $attributes) {
+                foreach ($attributes as $attribute) {
+                    $named_event_locator->addMethodCall('registerService', [$attribute['event'], $id]);
+                }
+            }
+        }
+
+        // BC: get services from old tag
         foreach ($container->findTaggedServiceIds('domain_event.named_event_listener') as $id => $attributes) {
             foreach ($attributes as $attribute) {
-                $definition->addMethodCall('registerService', [$attribute['event'], $id]);
+                $named_event_locator->addMethodCall('registerService', [$attribute['event'], $id]);
             }
         }
     }

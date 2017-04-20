@@ -137,7 +137,7 @@ services:
         class: SendEmailOnPurchaseOrderCreated
         arguments: [ '@mailer' ]
         tags:
-            - { name: domain_event.named_event_listener, event: PurchaseOrderCreatedEvent }
+            - { name: domain_event.listener, event: PurchaseOrderCreatedEvent }
 ```
 
 Publish events in listener
@@ -215,7 +215,7 @@ services:
         class: SendEmailOnPurchaseOrderCreated
         arguments: [ '@mailer' ]
         tags:
-            - { name: domain_event.voter_listener }
+            - { name: domain_event.listener }
 ```
 
 ## License
