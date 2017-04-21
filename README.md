@@ -43,7 +43,7 @@ Example configuration
 ```yml
 gpslab_domain_event:
     # Event bus service
-    # Support 'listener_locator' or a custom service
+    # Support 'listener_locator', 'queue' or a custom service
     # As a default used 'listener_locator'
     bus: 'listener_locator'
 

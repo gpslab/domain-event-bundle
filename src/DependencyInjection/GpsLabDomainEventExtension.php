@@ -23,6 +23,7 @@ class GpsLabDomainEventExtension extends Extension
     public function load(array $configs, ContainerBuilder $container)
     {
         $loader = new Loader\YamlFileLoader($container, new FileLocator(__DIR__.'/../Resources/config'));
+        $loader->load('queue.yml');
         $loader->load('bus.yml');
         $loader->load('locator.yml');
         $loader->load('name_resolver.yml');
@@ -69,7 +70,7 @@ class GpsLabDomainEventExtension extends Extension
      */
     protected function getBusRealName($name)
     {
-        if (in_array($name, ['listener_locator'])) {
+        if (in_array($name, ['listener_locator', 'queue'])) {
             return 'domain_event.bus.'.$name;
         }
 

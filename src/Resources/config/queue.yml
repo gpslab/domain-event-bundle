@@ -1,0 +1,6 @@
+services:
+    domain_event.queue.memory:
+        class: GpsLab\Domain\Event\Queue\MemoryEventQueue
+
+    domain_event.queue.memory_unique:
+        class: GpsLab\Domain\Event\Queue\MemoryUniqueEventQueue

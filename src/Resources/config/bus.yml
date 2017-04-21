@@ -3,3 +3,8 @@ services:
         class: GpsLab\Domain\Event\Bus\EventBus
         arguments: [ '@domain_event.locator' ]
         public: false
+
+    domain_event.bus.queue:
+        class: GpsLab\Domain\Event\Bus\QueueEventBus
+        arguments: [ '@domain_event.queue.memory_unique', '@domain_event.bus.listener_locator' ]
+        public: false
