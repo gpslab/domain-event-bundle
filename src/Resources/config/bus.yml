@@ -1,4 +1,4 @@
 services:
     domain_event.bus:
-        class: GpsLab\Domain\Event\Bus\EventBus
+        class: GpsLab\Domain\Event\Bus\Bus # BC: use deprecated class
         arguments: [ '@domain_event.locator' ]
