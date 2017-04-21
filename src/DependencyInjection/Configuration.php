@@ -20,6 +20,7 @@ class Configuration implements ConfigurationInterface
      * Example config:
      *
      * gpslab_domain_event:
+     *     bus: 'listener_locator'
      *     locator: 'named_event'
      *     name_resolver: 'event_class'
      *
@@ -30,6 +31,10 @@ class Configuration implements ConfigurationInterface
         return (new TreeBuilder())
             ->root('gpslab_domain_event')
                 ->children()
+                    ->scalarNode('bus')
+                        ->cannotBeEmpty()
+                        ->defaultValue('listener_locator')
+                    ->end()
                     ->scalarNode('locator')
                         ->cannotBeEmpty()
                         ->defaultValue('named_event')

@@ -42,6 +42,11 @@ Example configuration
 
 ```yml
 gpslab_domain_event:
+    # Event bus service
+    # Support 'listener_locator' or a custom service
+    # As a default used 'listener_locator'
+    bus: 'listener_locator'
+
     # Event listener locator
     # Support 'voter', 'named_event' or custom service
     # As a default used 'named_event'
