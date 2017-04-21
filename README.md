@@ -47,6 +47,11 @@ gpslab_domain_event:
     # As a default used 'listener_locator'
     bus: 'listener_locator'
 
+    # Event queue service
+    # Support 'memory', 'memory_unique' or a custom service
+    # As a default used 'memory_unique'
+    queue: 'memory_unique'
+
     # Event listener locator
     # Support 'voter', 'named_event' or custom service
     # As a default used 'named_event'

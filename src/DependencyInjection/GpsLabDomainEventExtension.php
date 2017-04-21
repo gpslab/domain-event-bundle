@@ -31,8 +31,37 @@ class GpsLabDomainEventExtension extends Extension
         $config = $this->processConfiguration(new Configuration(), $configs);
 
         $container->setAlias('domain_event.bus', $this->getBusRealName($config['bus']));
+        $container->setAlias('domain_event.queue', $this->getQueueRealName($config['queue']));
         $container->setAlias('domain_event.locator', $this->getLocatorRealName($config['locator']));
         $container->setAlias('domain_event.name_resolver', $this->getNameResolverRealName($config['name_resolver']));
+    }
+
+    /**
+     * @param string $name
+     *
+     * @return string
+     */
+    protected function getBusRealName($name)
+    {
+        if (in_array($name, ['listener_locator', 'queue'])) {
+            return 'domain_event.bus.'.$name;
+        }
+
+        return $name;
+    }
+
+    /**
+     * @param string $name
+     *
+     * @return string
+     */
+    protected function getQueueRealName($name)
+    {
+        if (in_array($name, ['memory', 'memory_unique'])) {
+            return 'domain_event.queue.'.$name;
+        }
+
+        return $name;
     }
 
     /**
@@ -58,20 +87,6 @@ class GpsLabDomainEventExtension extends Extension
     {
         if (in_array($name, ['event_class', 'event_class_last_part', 'named_event'])) {
             return 'domain_event.name_resolver.'.$name;
-        }
-
-        return $name;
-    }
-
-    /**
-     * @param string $name
-     *
-     * @return string
-     */
-    protected function getBusRealName($name)
-    {
-        if (in_array($name, ['listener_locator', 'queue'])) {
-            return 'domain_event.bus.'.$name;
         }
 
         return $name;

@@ -21,6 +21,7 @@ class Configuration implements ConfigurationInterface
      *
      * gpslab_domain_event:
      *     bus: 'listener_locator'
+     *     queue: 'memory_unique'
      *     locator: 'named_event'
      *     name_resolver: 'event_class'
      *
@@ -34,6 +35,10 @@ class Configuration implements ConfigurationInterface
                     ->scalarNode('bus')
                         ->cannotBeEmpty()
                         ->defaultValue('listener_locator')
+                    ->end()
+                    ->scalarNode('queue')
+                        ->cannotBeEmpty()
+                        ->defaultValue('memory_unique')
                     ->end()
                     ->scalarNode('locator')
                         ->cannotBeEmpty()

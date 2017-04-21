@@ -1,6 +1,8 @@
 services:
     domain_event.queue.memory:
         class: GpsLab\Domain\Event\Queue\MemoryEventQueue
+        public: false
 
     domain_event.queue.memory_unique:
         class: GpsLab\Domain\Event\Queue\MemoryUniqueEventQueue
+        public: false

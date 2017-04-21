@@ -6,5 +6,5 @@ services:
 
     domain_event.bus.queue:
         class: GpsLab\Domain\Event\Bus\QueueEventBus
-        arguments: [ '@domain_event.queue.memory_unique', '@domain_event.bus.listener_locator' ]
+        arguments: [ '@domain_event.queue', '@domain_event.bus.listener_locator' ]
         public: false
