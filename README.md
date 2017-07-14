@@ -167,6 +167,52 @@ foreach($events as $event) {
 //$bus->pullAndPublish($purchase_order);
 ```
 
+Listener method name
+--------------------
+
+You do not need to specify the name of the event handler method. By default, the
+[__invoke](http://php.net/manual/en/language.oop5.magic.php#object.invoke) method is used.
+
+
+```php
+use GpsLab\Domain\Event\Event;
+
+class SendEmailOnPurchaseOrderCreated
+{
+    private $mailer;
+
+    public function __construct(\Swift_Mailer $mailer)
+    {
+        $this->mailer = $mailer;
+    }
+
+    public function invoke(PurchaseOrderCreatedEvent $event)
+    {
+        $message = $this->mailer
+            ->createMessage()
+            ->setTo('recipient@example.com')
+            ->setBody(sprintf(
+                'Purchase order created at %s for customer #%s',
+                $event->getCreateAt()->format('Y-m-d'),
+                $event->getCustomer()->getId()
+            ));
+
+        $this->mailer->send($message);
+    }
+}
+```
+
+Register event listener
+
+```yml
+services:
+    acme.domain.purchase_order.event.created.send_email_listener:
+        class: SendEmailOnPurchaseOrderCreated
+        arguments: [ '@mailer' ]
+        tags:
+            - { name: domain_event.listener, event: PurchaseOrderCreatedEvent }
+```
+
 License
 -------
 
