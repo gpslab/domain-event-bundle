@@ -98,9 +98,15 @@ use GpsLab\Domain\Event\Aggregator\AbstractAggregateEvents;
 
 final class PurchaseOrder extends AbstractAggregateEvents
 {
+    private $customer_id;
+    private $create_at;
+
     public function __construct(CustomerId $customer_id)
     {
-        $this->raise(new PurchaseOrderCreatedEvent($customer_id, new \DateTimeImmutable()));
+        $this->customer_id = $customer_id;
+        $this->create_at = new \DateTimeImmutable();
+
+        $this->raise(new PurchaseOrderCreatedEvent($customer_id, $this->create_at));
     }
 }
 ```
