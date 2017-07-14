@@ -10,8 +10,8 @@
 namespace GpsLab\Bundle\DomainEvent;
 
 use GpsLab\Bundle\DomainEvent\DependencyInjection\Compiler\EventListenerPass;
+use GpsLab\Bundle\DomainEvent\DependencyInjection\GpsLabDomainEventExtension;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
-use Symfony\Component\DependencyInjection\Extension\ExtensionInterface;
 use Symfony\Component\HttpKernel\Bundle\Bundle;
 
 class GpsLabDomainEventBundle extends Bundle
@@ -26,18 +26,12 @@ class GpsLabDomainEventBundle extends Bundle
     }
 
     /**
-     * @return ExtensionInterface|bool
+     * @return GpsLabDomainEventExtension
      */
     public function getContainerExtension()
     {
-        if (null === $this->extension) {
-            $extension = $this->createContainerExtension();
-
-            if ($extension instanceof ExtensionInterface) {
-                $this->extension = $extension;
-            } else {
-                $this->extension = false;
-            }
+        if (!($this->extension instanceof GpsLabDomainEventExtension)) {
+            $this->extension = new GpsLabDomainEventExtension();
         }
 
         return $this->extension;
