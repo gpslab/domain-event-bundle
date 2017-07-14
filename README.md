@@ -192,7 +192,7 @@ class SendEmailOnPurchaseOrderCreated
         $this->mailer = $mailer;
     }
 
-    public function invoke(PurchaseOrderCreatedEvent $event)
+    public function __invoke(PurchaseOrderCreatedEvent $event)
     {
         $message = $this->mailer
             ->createMessage()
