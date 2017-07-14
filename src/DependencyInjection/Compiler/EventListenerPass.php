@@ -26,18 +26,8 @@ class EventListenerPass implements CompilerPassInterface
         $current_locator = $container->findDefinition('domain_event.locator');
         $symfony_locator = $container->findDefinition('domain_event.locator.symfony');
         $container_locator = $container->findDefinition('domain_event.locator.container');
-        $direct_binding_locator = $container->findDefinition('domain_event.locator.direct_binding');
 
-        if ($current_locator == $direct_binding_locator) {
-            foreach ($container->findTaggedServiceIds('domain_event.listener') as $id => $attributes) {
-                foreach ($attributes as $attribute) {
-                    $current_locator->addMethodCall(
-                        'register',
-                        [$attribute['event'], $container->findDefinition($id)]
-                    );
-                }
-            }
-        } elseif ($current_locator == $symfony_locator || $current_locator == $container_locator) {
+        if ($current_locator == $symfony_locator || $current_locator == $container_locator) {
             foreach ($container->findTaggedServiceIds('domain_event.listener') as $id => $attributes) {
                 foreach ($attributes as $attribute) {
                     $current_locator->addMethodCall(
