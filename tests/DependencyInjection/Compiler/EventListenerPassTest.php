@@ -73,19 +73,19 @@ class EventListenerPassTest extends \PHPUnit_Framework_TestCase
             ->expects($this->at(1))
             ->method('findDefinition')
             ->with('domain_event.locator')
-            ->will($this->returnValue($current_locator));
+            ->will($this->returnValue($current_locator))
         ;
         $this->container
             ->expects($this->at(2))
             ->method('findDefinition')
             ->with('domain_event.locator.symfony')
-            ->will($this->returnValue($symfony_locator));
+            ->will($this->returnValue($symfony_locator))
         ;
         $this->container
             ->expects($this->at(3))
             ->method('findDefinition')
             ->with('domain_event.locator.container')
-            ->will($this->returnValue($container_locator));
+            ->will($this->returnValue($container_locator))
         ;
         $this->container
             ->expects($this->never())
@@ -151,19 +151,19 @@ class EventListenerPassTest extends \PHPUnit_Framework_TestCase
             ->expects($this->at(1))
             ->method('findDefinition')
             ->with('domain_event.locator')
-            ->will($this->returnValue($current_locator));
+            ->will($this->returnValue($current_locator))
         ;
         $this->container
             ->expects($this->at(2))
             ->method('findDefinition')
             ->with('domain_event.locator.symfony')
-            ->will($this->returnValue($symfony_locator));
+            ->will($this->returnValue($symfony_locator))
         ;
         $this->container
             ->expects($this->at(3))
             ->method('findDefinition')
             ->with('domain_event.locator.container')
-            ->will($this->returnValue($container_locator));
+            ->will($this->returnValue($container_locator))
         ;
         $this->container
             ->expects($this->at(4))
