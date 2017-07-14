@@ -24,8 +24,10 @@ matrix:
           env: SYMFONY_VERSION=2.8.*
         - php: 5.5
           env: SYMFONY_VERSION=3.0.*
-    allow_failures:
         - php: hhvm
+          sudo: required
+          dist: trusty
+          group: edge
 
 before_install:
     - if [ -n "$GH_TOKEN" ]; then composer config github-oauth.github.com ${GH_TOKEN}; fi;
