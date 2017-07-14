@@ -20,10 +20,9 @@ class Configuration implements ConfigurationInterface
      * Example config:
      *
      * gpslab_domain_event:
-     *     bus: 'listener_locator'
-     *     queue: 'memory_unique'
-     *     locator: 'named_event'
-     *     name_resolver: 'event_class'
+     *     bus: 'listener_located'
+     *     queue: 'pull_memory'
+     *     locator: 'symfony'
      *
      * @return TreeBuilder
      */
@@ -34,19 +33,15 @@ class Configuration implements ConfigurationInterface
                 ->children()
                     ->scalarNode('bus')
                         ->cannotBeEmpty()
-                        ->defaultValue('listener_locator')
+                        ->defaultValue('listener_located')
                     ->end()
                     ->scalarNode('queue')
                         ->cannotBeEmpty()
-                        ->defaultValue('memory_unique')
+                        ->defaultValue('pull_memory')
                     ->end()
                     ->scalarNode('locator')
                         ->cannotBeEmpty()
-                        ->defaultValue('named_event')
-                    ->end()
-                    ->scalarNode('name_resolver')
-                        ->cannotBeEmpty()
-                        ->defaultValue('event_class')
+                        ->defaultValue('symfony')
                     ->end()
                 ->end()
             ->end()

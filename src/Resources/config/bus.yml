@@ -1,10 +1,10 @@
 services:
     domain_event.bus.listener_locator:
-        class: GpsLab\Domain\Event\Bus\Bus # BC: use deprecated class
+        class: GpsLab\Domain\Event\Bus\ListenerLocatedEventBus
         arguments: [ '@domain_event.locator' ]
         public: false
 
     domain_event.bus.queue:
         class: GpsLab\Domain\Event\Bus\QueueEventBus
-        arguments: [ '@domain_event.queue', '@domain_event.bus.listener_locator' ]
+        arguments: [ '@domain_event.queue' ]
         public: false

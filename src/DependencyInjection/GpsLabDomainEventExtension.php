@@ -26,14 +26,12 @@ class GpsLabDomainEventExtension extends Extension
         $loader->load('queue.yml');
         $loader->load('bus.yml');
         $loader->load('locator.yml');
-        $loader->load('name_resolver.yml');
 
         $config = $this->processConfiguration(new Configuration(), $configs);
 
-        $container->setAlias('domain_event.bus', $this->getBusRealName($config['bus']));
-        $container->setAlias('domain_event.queue', $this->getQueueRealName($config['queue']));
-        $container->setAlias('domain_event.locator', $this->getLocatorRealName($config['locator']));
-        $container->setAlias('domain_event.name_resolver', $this->getNameResolverRealName($config['name_resolver']));
+        $container->setAlias('domain_event.bus', $this->busRealName($config['bus']));
+        $container->setAlias('domain_event.queue', $this->queueRealName($config['queue']));
+        $container->setAlias('domain_event.locator', $this->locatorRealName($config['locator']));
     }
 
     /**
@@ -41,9 +39,9 @@ class GpsLabDomainEventExtension extends Extension
      *
      * @return string
      */
-    protected function getBusRealName($name)
+    private function busRealName($name)
     {
-        if (in_array($name, ['listener_locator', 'queue'])) {
+        if (in_array($name, ['listener_located', 'queue'])) {
             return 'domain_event.bus.'.$name;
         }
 
@@ -55,9 +53,9 @@ class GpsLabDomainEventExtension extends Extension
      *
      * @return string
      */
-    protected function getQueueRealName($name)
+    private function queueRealName($name)
     {
-        if (in_array($name, ['memory', 'memory_unique'])) {
+        if (in_array($name, ['pull_memory', 'subscribe_executing'])) {
             return 'domain_event.queue.'.$name;
         }
 
@@ -69,24 +67,10 @@ class GpsLabDomainEventExtension extends Extension
      *
      * @return string
      */
-    protected function getLocatorRealName($name)
+    private function locatorRealName($name)
     {
-        if (in_array($name, ['voter', 'named_event'])) {
+        if (in_array($name, ['direct_binding', 'container', 'symfony'])) {
             return 'domain_event.locator.'.$name;
-        }
-
-        return $name;
-    }
-
-    /**
-     * @param string $name
-     *
-     * @return string
-     */
-    protected function getNameResolverRealName($name)
-    {
-        if (in_array($name, ['event_class', 'event_class_last_part', 'named_event'])) {
-            return 'domain_event.name_resolver.'.$name;
         }
 
         return $name;

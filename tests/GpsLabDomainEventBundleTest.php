@@ -9,8 +9,7 @@
 
 namespace GpsLab\Bundle\DomainEvent\Tests;
 
-use GpsLab\Bundle\DomainEvent\DependencyInjection\Compiler\NamedEventListenerPass;
-use GpsLab\Bundle\DomainEvent\DependencyInjection\Compiler\VoterListenerPass;
+use GpsLab\Bundle\DomainEvent\DependencyInjection\Compiler\EventListenerPass;
 use GpsLab\Bundle\DomainEvent\GpsLabDomainEventBundle;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\HttpKernel\Bundle\Bundle;
@@ -40,13 +39,9 @@ class GpsLabDomainEventBundleTest extends \PHPUnit_Framework_TestCase
             ->disableOriginalConstructor()
             ->getMock();
         $container
-            ->expects($this->at(0))
+            ->expects($this->once())
             ->method('addCompilerPass')
-            ->with($this->isInstanceOf(NamedEventListenerPass::class));
-        $container
-            ->expects($this->at(1))
-            ->method('addCompilerPass')
-            ->with($this->isInstanceOf(VoterListenerPass::class));
+            ->with($this->isInstanceOf(EventListenerPass::class));
 
         $this->bundle->build($container);
     }

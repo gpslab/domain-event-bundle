@@ -14,7 +14,8 @@ Bundle to create the domain layer of your **DDD** application.
 
 This **Symfony** bundle is a wrapper for [gpslab/domain-event](https://github.com/gpslab/domain-event), look it for more details.
 
-## Installation
+Installation
+------------
 
 Pretty simple with [Composer](http://packagist.org), run:
 
@@ -36,57 +37,54 @@ public function registerBundles()
 }
 ```
 
-## Configuration
+Configuration
+-------------
 
 Example configuration
 
 ```yml
 gpslab_domain_event:
     # Event bus service
-    # Support 'listener_locator', 'queue' or a custom service
-    # As a default used 'listener_locator'
-    bus: 'listener_locator'
+    # Support 'listener_located', 'queue' or a custom service
+    # As a default used 'listener_located'
+    bus: 'listener_located'
 
     # Event queue service
-    # Support 'memory', 'memory_unique' or a custom service
-    # As a default used 'memory_unique'
-    queue: 'memory_unique'
+    # Support 'pull_memory', 'subscribe_executing' or a custom service
+    # As a default used 'pull_memory'
+    queue: 'pull_memory'
 
     # Event listener locator
-    # Support 'voter', 'named_event' or custom service
-    # As a default used 'named_event'
-    locator: 'named_event'
-
-    # Evant name resolver used in 'named_event' event listener locator
-    # Support 'event_class', 'event_class_last_part', 'named_event' or a custom service
-    # As a default used 'event_class'
-    name_resolver: 'event_class'
+    # Support 'symfony', 'container', 'direct_binding' or custom service
+    # As a default used 'symfony'
+    locator: 'symfony'
 ```
 
-## Usage
+Usage
+-----
 
 Create a domain event
 
 ```php
-use GpsLab\Domain\Event\EventInterface;
+use GpsLab\Domain\Event\Event
 
-class PurchaseOrderCreatedEvent implements EventInterface
+class PurchaseOrderCreatedEvent implements Event
 {
-    private $customer;
+    private $customer_id;
     private $create_at;
 
-    public function __construct(Customer $customer, \DateTimeImmutable $create_at)
+    public function __construct(CustomerId $customer_id, \DateTimeImmutable $create_at)
     {
-        $this->customer = $customer;
+        $this->customer_id = $customer_id;
         $this->create_at = $create_at;
     }
 
-    public function getCustomer()
+    public function customerId()
     {
-        return $this->customer;
+        return $this->customer_id;
     }
 
-    public function getCreateAt()
+    public function createAt()
     {
         return $this->create_at;
     }
@@ -100,9 +98,9 @@ use GpsLab\Domain\Event\Aggregator\AbstractAggregateEvents;
 
 final class PurchaseOrder extends AbstractAggregateEvents
 {
-    public function __construct(Customer $customer)
+    public function __construct(CustomerId $customer_id)
     {
-        $this->raise(new PurchaseOrderCreatedEvent($customer, new \DateTimeImmutable()));
+        $this->raise(new PurchaseOrderCreatedEvent($customer_id, new \DateTimeImmutable()));
     }
 }
 ```
@@ -110,10 +108,9 @@ final class PurchaseOrder extends AbstractAggregateEvents
 Create listener
 
 ```php
-use GpsLab\Domain\Event\EventInterface;
-use GpsLab\Domain\Event\Listener\ListenerInterface;
+use GpsLab\Domain\Event\Event;
 
-class SendEmailOnPurchaseOrderCreated implements ListenerInterface
+class SendEmailOnPurchaseOrderCreated
 {
     private $mailer;
 
@@ -122,7 +119,7 @@ class SendEmailOnPurchaseOrderCreated implements ListenerInterface
         $this->mailer = $mailer;
     }
 
-    public function handle(EventInterface $event)
+    public function onPurchaseOrderCreated(PurchaseOrderCreatedEvent $event)
     {
         $message = $this->mailer
             ->createMessage()
@@ -142,11 +139,11 @@ Register event listener
 
 ```yml
 services:
-    domain_event.listener.purchase_order.send_email_on_created:
+    acme.domain.purchase_order.event.created.send_email_listener:
         class: SendEmailOnPurchaseOrderCreated
         arguments: [ '@mailer' ]
         tags:
-            - { name: domain_event.listener, event: PurchaseOrderCreatedEvent }
+            - { name: domain_event.listener, event: PurchaseOrderCreatedEvent, method: onPurchaseOrderCreated }
 ```
 
 Publish events in listener
@@ -156,7 +153,7 @@ Publish events in listener
 $bus = $this->get('domain_event.bus');
 
 // do what you need to do on your Domain
-$purchase_order = new PurchaseOrder(new Customer(1));
+$purchase_order = new PurchaseOrder(new CustomerId(1));
 
 // this will clear the list of event in your AggregateEvents so an Event is trigger only once
 $events = $purchase_order->pullEvents();
@@ -170,63 +167,7 @@ foreach($events as $event) {
 //$bus->pullAndPublish($purchase_order);
 ```
 
-### If you want use VoterLocator, you must
-
-Change configuration
-
-```yml
-gpslab_domain_event:
-    locator: 'voter'
-```
-
-Implement `VoterListenerInterface` in your event listener
-
-```php
-use GpsLab\Domain\Event\EventInterface;
-use GpsLab\Domain\Event\Listener\ListenerInterface;
-
-class SendEmailOnPurchaseOrderCreated implements VoterListenerInterface
-{
-    private $mailer;
-
-    public function __construct(\Swift_Mailer $mailer)
-    {
-        $this->mailer = $mailer;
-    }
-
-    public function isSupportedEvent(EventInterface $event);
-    {
-        // you can add more conditions
-        return $event instanceof PurchaseOrderCreatedEvent;
-    }
-
-    public function handle(EventInterface $event)
-    {
-        $message = $this->mailer
-            ->createMessage()
-            ->setTo('recipient@example.com')
-            ->setBody(sprintf(
-                'Purchase order created at %s for customer #%s',
-                $event->getCreateAt()->format('Y-m-d'),
-                $event->getCustomer()->getId()
-            ));
-
-        $this->mailer->send($message);
-    }
-}
-```
-
-Register event listener
-
-```yml
-services:
-    domain_event.listener.purchase_order.send_email_on_created:
-        class: SendEmailOnPurchaseOrderCreated
-        arguments: [ '@mailer' ]
-        tags:
-            - { name: domain_event.listener }
-```
-
-## License
+License
+-------
 
 This bundle is under the [MIT license](http://opensource.org/licenses/MIT). See the complete license in the file: LICENSE
