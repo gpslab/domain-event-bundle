@@ -213,6 +213,166 @@ services:
             - { name: domain_event.listener, event: PurchaseOrderCreatedEvent }
 ```
 
+Use pull Predis queue
+---------------------
+
+Install Predis with [Composer](http://packagist.org), run:
+
+```sh
+composer require predis/predis
+```
+
+Register services:
+
+```yml
+services:
+    # Predis
+    acme.predis:
+        class: Predis\Client
+        arguments: [ '127.0.0.1' ]
+
+    # Events serializer for queue
+    acme.domain.event.queue.serializer:
+        class: GpsLab\Domain\Event\Queue\Serializer\SymfonySerializer
+        arguments: [ '@serializer', 'json' ]
+
+    # Predis event queue
+    acme.domain.event.queue:
+        class: GpsLab\Domain\Event\Queue\Pull\PredisPullEventQueue
+        arguments: [ '@acme.predis', '@acme.domain.event.queue.serializer', '@logger', 'event_queue_name' ]
+```
+
+Change config for use custom queue:
+
+```yml
+gpslab_domain_event:
+    queue: 'acme.domain.event.queue'
+```
+
+And now you can use custom queue:
+
+```php
+$container->get('domain_event.queue')->publish($domain_event);
+```
+
+In latter pull events from queue:
+
+```php
+$queue = $container->get('domain_event.queue');
+$bus = $container->get('domain_event.bus');
+
+while ($event = $queue->pull()) {
+    $bus->publish($event);
+}
+```
+
+Use Predis subscribe queue
+--------------------------
+
+Install Predis PubSub adapter with [Composer](http://packagist.org), run:
+
+```sh
+composer require superbalist/php-pubsub-redis
+```
+
+Register services:
+
+```yml
+services:
+    # Predis
+    acme.predis:
+        class: Predis\Client
+        arguments: [ '127.0.0.1' ]
+
+    # Predis PubSub adapter
+    acme.predis.pubsub:
+        class: Superbalist\PubSub\Redis\RedisPubSubAdapter
+        arguments: [ '@acme.predis' ]
+
+    # Events serializer for queue
+    acme.domain.event.queue.serializer:
+        class: GpsLab\Domain\Event\Queue\Serializer\SymfonySerializer
+        arguments: [ '@serializer', 'json' ]
+
+    # Predis event queue
+    acme.domain.event.queue:
+        class: GpsLab\Domain\Event\Queue\Subscribe\PredisSubscribeEventQueue
+        arguments: [ '@acme.predis.pubsub', '@acme.domain.event.queue.serializer', '@logger', 'event_queue_name' ]
+```
+
+Change config for use custom queue:
+
+```yml
+gpslab_domain_event:
+    queue: 'acme.domain.event.queue'
+```
+
+And now you can use custom queue:
+
+```php
+$container->get('domain_event.queue')->publish($domain_event);
+```
+
+Subscribe on the queue:
+
+```php
+$container->get('domain_event.queue')->subscribe(function (Event $event) {
+    // do somthing
+});
+```
+
+> **Note**
+>
+> You can use subscribe handlers as a services and [tag](http://symfony.com/doc/current/service_container/tags.html) it
+for optimize register.
+
+Many queues
+-----------
+
+You can use many queues for separation the flows. For example, you want to handle events of different Bounded Contexts
+separately from each other.
+
+```yml
+services:
+    acme.domain.purchase_order.event.queue:
+        class: GpsLab\Domain\Event\Queue\Pull\PredisPullEventQueue
+        arguments: [ '@acme.predis', '@acme.domain.event.queue.serializer', '@logger', 'purchase_order_event_queue' ]
+
+    acme.domain.article_comment.event.queue:
+        class: GpsLab\Domain\Event\Queue\Pull\PredisPullEventQueue
+        arguments: [ '@acme.predis', '@acme.domain.event.queue.serializer', '@logger', 'article_comment_event_queue' ]
+```
+
+And now you can use a different queues.
+
+In **Purchase order** Bounded Contexts.
+
+```php
+$event = new PurchaseOrderCreatedEvent(
+    new CustomerId(1),
+    new \DateTimeImmutable()
+);
+
+$container->get('acme.domain.purchase_order.event.queue')->publish($event);
+```
+
+In **Article comment** Bounded Contexts.
+
+```php
+$event = new ArticleCommentedEvent(
+    new ArticleId(1),
+    new AuthorId(1),
+    $comment
+    new \DateTimeImmutable()
+);
+
+$container->get('acme.domain.article_comment.event.queue')->publish($event);
+```
+
+> **Note**
+>
+> Similarly, you can split the subscribe queues.
+
 License
 -------
 
