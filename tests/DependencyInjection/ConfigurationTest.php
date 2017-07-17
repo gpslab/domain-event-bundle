@@ -43,7 +43,7 @@ class ConfigurationTest extends \PHPUnit_Framework_TestCase
         $children = $tree->getChildren();
 
         $this->assertInternalType('array', $children);
-        $this->assertEquals(['bus', 'queue', 'locator'], array_keys($children));
+        $this->assertEquals(['bus', 'queue', 'locator', 'publish_on_flush'], array_keys($children));
 
         $this->assertInstanceOf(ScalarNode::class, $children['bus']);
         $this->assertEquals('listener_located', $children['bus']->getDefaultValue());

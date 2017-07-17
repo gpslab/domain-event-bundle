@@ -43,6 +43,9 @@ class Configuration implements ConfigurationInterface
                         ->cannotBeEmpty()
                         ->defaultValue('symfony')
                     ->end()
+                    ->booleanNode('publish_on_flush')
+                        ->defaultValue(false)
+                    ->end()
                 ->end()
             ->end()
         ;

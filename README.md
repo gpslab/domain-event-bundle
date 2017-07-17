@@ -58,6 +58,10 @@ gpslab_domain_event:
     # Support 'symfony', 'container', 'direct_binding' or custom service
     # As a default used 'symfony'
     locator: 'symfony'
+
+    # Publish domain events post a Doctrine flush event
+    # As a default used 'false'
+    publish_on_flush: true
 ```
 
 Usage

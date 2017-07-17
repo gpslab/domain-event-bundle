@@ -26,12 +26,15 @@ class GpsLabDomainEventExtension extends Extension
         $loader->load('queue.yml');
         $loader->load('bus.yml');
         $loader->load('locator.yml');
+        $loader->load('publisher.yml');
 
         $config = $this->processConfiguration(new Configuration(), $configs);
 
         $container->setAlias('domain_event.bus', $this->busRealName($config['bus']));
         $container->setAlias('domain_event.queue', $this->queueRealName($config['queue']));
         $container->setAlias('domain_event.locator', $this->locatorRealName($config['locator']));
+
+        $container->getDefinition('domain_event.publisher')->replaceArgument(1, $config['publish_on_flush']);
     }
 
     /**

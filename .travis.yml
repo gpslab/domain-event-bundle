@@ -22,6 +22,10 @@ matrix:
           env: SYMFONY_VERSION=2.8.*
         - php: 5.5
           env: SYMFONY_VERSION=3.0.*
+        - php: 5.5
+          env: DOCTRINE_VERSION=2.4.*
+        - php: 5.5
+          env: DOCTRINE_VERSION=2.5.*
         - php: hhvm
           sudo: required
           dist: trusty
@@ -33,6 +37,7 @@ before_install:
 
 before_script:
     - if [ "$SYMFONY_VERSION" != "" ]; then composer require "symfony/symfony:${SYMFONY_VERSION}" --dev --no-update; fi;
+    - if [ "$DOCTRINE_VERSION" != "" ]; then composer require "doctrine/orm:${DOCTRINE_VERSION}" --dev --no-update; fi;
     - composer install --prefer-dist --no-interaction --no-scripts --no-progress
 
 script:
