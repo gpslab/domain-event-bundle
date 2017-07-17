@@ -79,40 +79,6 @@ class DomainEventPublisherTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals([Events::postFlush], $publisher->getSubscribedEvents());
     }
 
-    public function testPostFlushNotOpen()
-    {
-        $this->args
-            ->expects($this->once())
-            ->method('getEntityManager')
-            ->will($this->returnValue($this->em))
-        ;
-
-        $this->em
-            ->expects($this->once())
-            ->method('isOpen')
-            ->will($this->returnValue(false))
-        ;
-        $this->em
-            ->expects($this->never())
-            ->method('getUnitOfWork')
-        ;
-        $this->em
-            ->expects($this->never())
-            ->method('flush')
-        ;
-
-        $this->bus
-            ->expects($this->never())
-            ->method('publish')
-        ;
-        $this->bus
-            ->expects($this->never())
-            ->method('pullAndPublish')
-        ;
-
-        $this->publisher->postFlush($this->args);
-    }
-
     public function testPostFlushNotEvents()
     {
         $map = [];
@@ -123,11 +89,6 @@ class DomainEventPublisherTest extends \PHPUnit_Framework_TestCase
             ->will($this->returnValue($this->em))
         ;
 
-        $this->em
-            ->expects($this->once())
-            ->method('isOpen')
-            ->will($this->returnValue(true))
-        ;
         $this->em
             ->expects($this->once())
             ->method('getUnitOfWork')
@@ -194,11 +155,6 @@ class DomainEventPublisherTest extends \PHPUnit_Framework_TestCase
 
         $this->em
             ->expects($this->once())
-            ->method('isOpen')
-            ->will($this->returnValue(true))
-        ;
-        $this->em
-            ->expects($this->once())
             ->method('getUnitOfWork')
             ->will($this->returnValue($this->uow))
         ;
@@ -261,11 +217,6 @@ class DomainEventPublisherTest extends \PHPUnit_Framework_TestCase
             ->will($this->returnValue($this->em))
         ;
 
-        $this->em
-            ->expects($this->once())
-            ->method('isOpen')
-            ->will($this->returnValue(true))
-        ;
         $this->em
             ->expects($this->once())
             ->method('getUnitOfWork')

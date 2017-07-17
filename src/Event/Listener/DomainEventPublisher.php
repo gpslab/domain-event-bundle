@@ -60,30 +60,28 @@ class DomainEventPublisher implements EventSubscriber
     {
         $em = $args->getEntityManager();
 
-        if ($em->isOpen()) {
-            $map = $em->getUnitOfWork()->getIdentityMap();
-            $has_events = false;
+        $map = $em->getUnitOfWork()->getIdentityMap();
+        $has_events = false;
 
-            foreach ($map as $entities) {
-                foreach ($entities as $entity) {
-                    // ignore Doctrine proxy classes
-                    // proxy class can't have a domain events
-                    if ($entity instanceof Proxy || !($entity instanceof AggregateEvents)) {
-                        break;
-                    }
+        foreach ($map as $entities) {
+            foreach ($entities as $entity) {
+                // ignore Doctrine proxy classes
+                // proxy class can't have a domain events
+                if ($entity instanceof Proxy || !($entity instanceof AggregateEvents)) {
+                    break;
+                }
 
-                    foreach ($entity->pullEvents() as $event) {
-                        $this->bus->publish($event);
-                        $has_events = true;
-                    }
+                foreach ($entity->pullEvents() as $event) {
+                    $this->bus->publish($event);
+                    $has_events = true;
                 }
             }
+        }
 
-            // flush only if has domain events
-            // it necessary for fix recursive handle flush
-            if ($has_events) {
-                $em->flush();
-            }
+        // flush only if has domain events
+        // it necessary for fix recursive handle flush
+        if ($has_events) {
+            $em->flush();
         }
     }
 }
