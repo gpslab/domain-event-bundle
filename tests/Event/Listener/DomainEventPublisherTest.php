@@ -150,7 +150,7 @@ class DomainEventPublisherTest extends \PHPUnit_Framework_TestCase
         $this->uow
             ->expects($this->once())
             ->method('getIdentityMap')
-            ->will($this->returnValue($map));
+            ->will($this->returnValue($map))
         ;
 
         $this->publisher->postFlush($this->args);
