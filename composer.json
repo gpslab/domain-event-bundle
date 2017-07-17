@@ -19,7 +19,7 @@
         "gpslab/domain-event": "~2.0"
     },
     "require-dev": {
-        "symfony/framework-bundle": "~2.3|~3.0",
+        "symfony/http-kernel": "~2.3|~3.0",
         "symfony/dependency-injection": "~2.3|~3.0",
         "symfony/expression-language": "~2.3|~3.0",
         "doctrine/orm": "~2.4|~2.5",
