@@ -9,34 +9,29 @@
 
 namespace GpsLab\Bundle\DomainEvent;
 
-use GpsLab\Bundle\DomainEvent\DependencyInjection\Compiler\NamedEventListenerPass;
-use GpsLab\Bundle\DomainEvent\DependencyInjection\Compiler\VoterListenerPass;
+use GpsLab\Bundle\DomainEvent\DependencyInjection\Compiler\EventListenerPass;
+use GpsLab\Bundle\DomainEvent\DependencyInjection\GpsLabDomainEventExtension;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
-use Symfony\Component\DependencyInjection\Extension\ExtensionInterface;
 use Symfony\Component\HttpKernel\Bundle\Bundle;
 
 class GpsLabDomainEventBundle extends Bundle
 {
+    /**
+     * @param ContainerBuilder $container
+     */
     public function build(ContainerBuilder $container)
     {
         parent::build($container);
-        $container->addCompilerPass(new NamedEventListenerPass());
-        $container->addCompilerPass(new VoterListenerPass());
+        $container->addCompilerPass(new EventListenerPass());
     }
 
     /**
-     * @return ExtensionInterface|bool
+     * @return GpsLabDomainEventExtension
      */
     public function getContainerExtension()
     {
-        if (null === $this->extension) {
-            $extension = $this->createContainerExtension();
-
-            if ($extension instanceof ExtensionInterface) {
-                $this->extension = $extension;
-            } else {
-                $this->extension = false;
-            }
+        if (!($this->extension instanceof GpsLabDomainEventExtension)) {
+            $this->extension = new GpsLabDomainEventExtension();
         }
 
         return $this->extension;

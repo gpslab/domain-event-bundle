@@ -1,9 +1,15 @@
 services:
-    domain_event.locator.voter:
-        class: GpsLab\Domain\Event\Listener\Locator\VoterLocator
+    domain_event.locator.symfony:
+        class: GpsLab\Domain\Event\Listener\Locator\SymfonyContainerEventListenerLocator
+        calls:
+            - [ setContainer, [ '@service_container' ] ]
         public: false
 
-    domain_event.locator.named_event:
-        class: GpsLab\Domain\Event\Listener\Locator\ContainerAwareLocator
-        arguments: [ '@domain_event.name_resolver', '@service_container' ]
+    domain_event.locator.container:
+        class: GpsLab\Domain\Event\Listener\Locator\ContainerEventListenerLocator
+        arguments: [ '@service_container' ]
+        public: false
+
+    domain_event.locator.direct_binding:
+        class: GpsLab\Domain\Event\Listener\Locator\DirectBindingEventListenerLocator
         public: false

@@ -14,7 +14,8 @@ Bundle to create the domain layer of your **DDD** application.
 
 This **Symfony** bundle is a wrapper for [gpslab/domain-event](https://github.com/gpslab/domain-event), look it for more details.
 
-## Installation
+Installation
+------------
 
 Pretty simple with [Composer](http://packagist.org), run:
 
@@ -36,57 +37,58 @@ public function registerBundles()
 }
 ```
 
-## Configuration
+Configuration
+-------------
 
 Example configuration
 
 ```yml
 gpslab_domain_event:
     # Event bus service
-    # Support 'listener_locator', 'queue' or a custom service
-    # As a default used 'listener_locator'
-    bus: 'listener_locator'
+    # Support 'listener_located', 'queue' or a custom service
+    # As a default used 'listener_located'
+    bus: 'listener_located'
 
     # Event queue service
-    # Support 'memory', 'memory_unique' or a custom service
-    # As a default used 'memory_unique'
-    queue: 'memory_unique'
+    # Support 'pull_memory', 'subscribe_executing' or a custom service
+    # As a default used 'pull_memory'
+    queue: 'pull_memory'
 
     # Event listener locator
-    # Support 'voter', 'named_event' or custom service
-    # As a default used 'named_event'
-    locator: 'named_event'
+    # Support 'symfony', 'container', 'direct_binding' or custom service
+    # As a default used 'symfony'
+    locator: 'symfony'
 
-    # Evant name resolver used in 'named_event' event listener locator
-    # Support 'event_class', 'event_class_last_part', 'named_event' or a custom service
-    # As a default used 'event_class'
-    name_resolver: 'event_class'
+    # Publish domain events post a Doctrine flush event
+    # As a default used 'false'
+    publish_on_flush: true
 ```
 
-## Usage
+Usage
+-----
 
 Create a domain event
 
 ```php
-use GpsLab\Domain\Event\EventInterface;
+use GpsLab\Domain\Event\Event
 
-class PurchaseOrderCreatedEvent implements EventInterface
+class PurchaseOrderCreatedEvent implements Event
 {
-    private $customer;
+    private $customer_id;
     private $create_at;
 
-    public function __construct(Customer $customer, \DateTimeImmutable $create_at)
+    public function __construct(CustomerId $customer_id, \DateTimeImmutable $create_at)
     {
-        $this->customer = $customer;
+        $this->customer_id = $customer_id;
         $this->create_at = $create_at;
     }
 
-    public function getCustomer()
+    public function customerId()
     {
-        return $this->customer;
+        return $this->customer_id;
     }
 
-    public function getCreateAt()
+    public function createAt()
     {
         return $this->create_at;
     }
@@ -100,9 +102,15 @@ use GpsLab\Domain\Event\Aggregator\AbstractAggregateEvents;
 
 final class PurchaseOrder extends AbstractAggregateEvents
 {
-    public function __construct(Customer $customer)
+    private $customer_id;
+    private $create_at;
+
+    public function __construct(CustomerId $customer_id)
     {
-        $this->raise(new PurchaseOrderCreatedEvent($customer, new \DateTimeImmutable()));
+        $this->customer_id = $customer_id;
+        $this->create_at = new \DateTimeImmutable();
+
+        $this->raise(new PurchaseOrderCreatedEvent($customer_id, $this->create_at));
     }
 }
 ```
@@ -110,10 +118,9 @@ final class PurchaseOrder extends AbstractAggregateEvents
 Create listener
 
 ```php
-use GpsLab\Domain\Event\EventInterface;
-use GpsLab\Domain\Event\Listener\ListenerInterface;
+use GpsLab\Domain\Event\Event;
 
-class SendEmailOnPurchaseOrderCreated implements ListenerInterface
+class SendEmailOnPurchaseOrderCreated
 {
     private $mailer;
 
@@ -122,7 +129,7 @@ class SendEmailOnPurchaseOrderCreated implements ListenerInterface
         $this->mailer = $mailer;
     }
 
-    public function handle(EventInterface $event)
+    public function onPurchaseOrderCreated(PurchaseOrderCreatedEvent $event)
     {
         $message = $this->mailer
             ->createMessage()
@@ -142,11 +149,11 @@ Register event listener
 
 ```yml
 services:
-    domain_event.listener.purchase_order.send_email_on_created:
+    acme.domain.purchase_order.event.created.send_email_listener:
         class: SendEmailOnPurchaseOrderCreated
         arguments: [ '@mailer' ]
         tags:
-            - { name: domain_event.listener, event: PurchaseOrderCreatedEvent }
+            - { name: domain_event.listener, event: PurchaseOrderCreatedEvent, method: onPurchaseOrderCreated }
 ```
 
 Publish events in listener
@@ -156,7 +163,7 @@ Publish events in listener
 $bus = $this->get('domain_event.bus');
 
 // do what you need to do on your Domain
-$purchase_order = new PurchaseOrder(new Customer(1));
+$purchase_order = new PurchaseOrder(new CustomerId(1));
 
 // this will clear the list of event in your AggregateEvents so an Event is trigger only once
 $events = $purchase_order->pullEvents();
@@ -170,22 +177,17 @@ foreach($events as $event) {
 //$bus->pullAndPublish($purchase_order);
 ```
 
-### If you want use VoterLocator, you must
+Listener method name
+--------------------
 
-Change configuration
+You do not need to specify the name of the event handler method. By default, the
+[__invoke](http://php.net/manual/en/language.oop5.magic.php#object.invoke) method is used.
 
-```yml
-gpslab_domain_event:
-    locator: 'voter'
-```
-
-Implement `VoterListenerInterface` in your event listener
 
 ```php
-use GpsLab\Domain\Event\EventInterface;
-use GpsLab\Domain\Event\Listener\ListenerInterface;
+use GpsLab\Domain\Event\Event;
 
-class SendEmailOnPurchaseOrderCreated implements VoterListenerInterface
+class SendEmailOnPurchaseOrderCreated
 {
     private $mailer;
 
@@ -194,13 +196,7 @@ class SendEmailOnPurchaseOrderCreated implements VoterListenerInterface
         $this->mailer = $mailer;
     }
 
-    public function isSupportedEvent(EventInterface $event);
-    {
-        // you can add more conditions
-        return $event instanceof PurchaseOrderCreatedEvent;
-    }
-
-    public function handle(EventInterface $event)
+    public function __invoke(PurchaseOrderCreatedEvent $event)
     {
         $message = $this->mailer
             ->createMessage()
@@ -220,13 +216,174 @@ Register event listener
 
 ```yml
 services:
-    domain_event.listener.purchase_order.send_email_on_created:
+    acme.domain.purchase_order.event.created.send_email_listener:
         class: SendEmailOnPurchaseOrderCreated
         arguments: [ '@mailer' ]
         tags:
-            - { name: domain_event.listener }
+            - { name: domain_event.listener, event: PurchaseOrderCreatedEvent }
 ```
 
-## License
+Use pull Predis queue
+---------------------
+
+Install Predis with [Composer](http://packagist.org), run:
+
+```sh
+composer require predis/predis
+```
+
+Register services:
+
+```yml
+services:
+    # Predis
+    acme.predis:
+        class: Predis\Client
+        arguments: [ '127.0.0.1' ]
+
+    # Events serializer for queue
+    acme.domain.event.queue.serializer:
+        class: GpsLab\Domain\Event\Queue\Serializer\SymfonySerializer
+        arguments: [ '@serializer', 'json' ]
+
+    # Predis event queue
+    acme.domain.event.queue:
+        class: GpsLab\Domain\Event\Queue\Pull\PredisPullEventQueue
+        arguments: [ '@acme.predis', '@acme.domain.event.queue.serializer', '@logger', 'event_queue_name' ]
+```
+
+Change config for use custom queue:
+
+```yml
+gpslab_domain_event:
+    queue: 'acme.domain.event.queue'
+```
+
+And now you can use custom queue:
+
+```php
+$container->get('domain_event.queue')->publish($domain_event);
+```
+
+In latter pull events from queue:
+
+```php
+$queue = $container->get('domain_event.queue');
+$bus = $container->get('domain_event.bus');
+
+while ($event = $queue->pull()) {
+    $bus->publish($event);
+}
+```
+
+Use Predis subscribe queue
+--------------------------
+
+Install Predis PubSub adapter with [Composer](http://packagist.org), run:
+
+```sh
+composer require superbalist/php-pubsub-redis
+```
+
+Register services:
+
+```yml
+services:
+    # Predis
+    acme.predis:
+        class: Predis\Client
+        arguments: [ '127.0.0.1' ]
+
+    # Predis PubSub adapter
+    acme.predis.pubsub:
+        class: Superbalist\PubSub\Redis\RedisPubSubAdapter
+        arguments: [ '@acme.predis' ]
+
+    # Events serializer for queue
+    acme.domain.event.queue.serializer:
+        class: GpsLab\Domain\Event\Queue\Serializer\SymfonySerializer
+        arguments: [ '@serializer', 'json' ]
+
+    # Predis event queue
+    acme.domain.event.queue:
+        class: GpsLab\Domain\Event\Queue\Subscribe\PredisSubscribeEventQueue
+        arguments: [ '@acme.predis.pubsub', '@acme.domain.event.queue.serializer', '@logger', 'event_queue_name' ]
+```
+
+Change config for use custom queue:
+
+```yml
+gpslab_domain_event:
+    queue: 'acme.domain.event.queue'
+```
+
+And now you can use custom queue:
+
+```php
+$container->get('domain_event.queue')->publish($domain_event);
+```
+
+Subscribe on the queue:
+
+```php
+$container->get('domain_event.queue')->subscribe(function (Event $event) {
+    // do somthing
+});
+```
+
+> **Note**
+>
+> You can use subscribe handlers as a services and [tag](http://symfony.com/doc/current/service_container/tags.html) it
+for optimize register.
+
+Many queues
+-----------
+
+You can use many queues for separation the flows. For example, you want to handle events of different Bounded Contexts
+separately from each other.
+
+```yml
+services:
+    acme.domain.purchase_order.event.queue:
+        class: GpsLab\Domain\Event\Queue\Pull\PredisPullEventQueue
+        arguments: [ '@acme.predis', '@acme.domain.event.queue.serializer', '@logger', 'purchase_order_event_queue' ]
+
+    acme.domain.article_comment.event.queue:
+        class: GpsLab\Domain\Event\Queue\Pull\PredisPullEventQueue
+        arguments: [ '@acme.predis', '@acme.domain.event.queue.serializer', '@logger', 'article_comment_event_queue' ]
+```
+
+And now you can use a different queues.
+
+In **Purchase order** Bounded Contexts.
+
+```php
+$event = new PurchaseOrderCreatedEvent(
+    new CustomerId(1),
+    new \DateTimeImmutable()
+);
+
+$container->get('acme.domain.purchase_order.event.queue')->publish($event);
+```
+
+In **Article comment** Bounded Contexts.
+
+```php
+$event = new ArticleCommentedEvent(
+    new ArticleId(1),
+    new AuthorId(1),
+    $comment
+    new \DateTimeImmutable()
+);
+
+$container->get('acme.domain.article_comment.event.queue')->publish($event);
+```
+
+> **Note**
+>
+> Similarly, you can split the subscribe queues.
+
+License
+-------
 
 This bundle is under the [MIT license](http://opensource.org/licenses/MIT). See the complete license in the file: LICENSE
