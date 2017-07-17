@@ -84,7 +84,7 @@ class DomainEventPublisherTest extends \PHPUnit_Framework_TestCase
         $map = [];
 
         $this->args
-            ->expects($this->once())
+            ->expects($this->atLeastOnce())
             ->method('getEntityManager')
             ->will($this->returnValue($this->em))
         ;
@@ -148,7 +148,7 @@ class DomainEventPublisherTest extends \PHPUnit_Framework_TestCase
         ];
 
         $this->args
-            ->expects($this->once())
+            ->expects($this->atLeastOnce())
             ->method('getEntityManager')
             ->will($this->returnValue($this->em))
         ;
@@ -212,7 +212,7 @@ class DomainEventPublisherTest extends \PHPUnit_Framework_TestCase
         ];
 
         $this->args
-            ->expects($this->once())
+            ->expects($this->atLeastOnce())
             ->method('getEntityManager')
             ->will($this->returnValue($this->em))
         ;

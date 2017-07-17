@@ -58,11 +58,23 @@ class DomainEventPublisher implements EventSubscriber
      */
     public function postFlush(PostFlushEventArgs $args)
     {
-        $em = $args->getEntityManager();
+        $map = $args->getEntityManager()->getUnitOfWork()->getIdentityMap();
 
-        $map = $em->getUnitOfWork()->getIdentityMap();
+        // flush only if has domain events
+        // it necessary for fix recursive handle flush
+        if ($this->publish($map)) {
+            $args->getEntityManager()->flush();
+        }
+    }
+
+    /**
+     * @param array $map
+     *
+     * @return bool
+     */
+    private function publish(array $map)
+    {
         $has_events = false;
-
         foreach ($map as $entities) {
             foreach ($entities as $entity) {
                 // ignore Doctrine proxy classes
@@ -78,10 +90,6 @@ class DomainEventPublisher implements EventSubscriber
             }
         }
 
-        // flush only if has domain events
-        // it necessary for fix recursive handle flush
-        if ($has_events) {
-            $em->flush();
-        }
+        return $has_events;
     }
 }
