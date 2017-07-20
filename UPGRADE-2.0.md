@@ -9,9 +9,9 @@ Before:
 ```yml
 gpslab_domain_event:
     # Event bus service
-    # Support 'listener_locator', 'queue' or a custom service
-    # As a default used 'listener_locator'
-    bus: 'listener_locator'
+    # Support 'listener_located', 'queue' or a custom service
+    # As a default used 'listener_located'
+    bus: 'listener_located'
 
     # Event queue service
     # Support 'memory', 'memory_unique' or a custom service
@@ -99,10 +99,10 @@ Created queue
 Changed event bus
 -----------------
 
-* Changed class for `domain_event.bus.listener_locator`.
+* Changed class for `domain_event.bus.listener_located`.
 
    Before used `GpsLab\Domain\Event\Bus\Bus` class.
 
    After used `GpsLab\Domain\Event\Bus\ListenerLocatedEventBus` class.
 
-* Service `domain_event.bus.queue` not use a `domain_event.bus.listener_locator` service.
+* Service `domain_event.bus.queue` not use a `domain_event.bus.listener_located` service.
