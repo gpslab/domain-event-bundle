@@ -1,5 +1,5 @@
 services:
-    domain_event.bus.listener_locator:
+    domain_event.bus.listener_located:
         class: GpsLab\Domain\Event\Bus\ListenerLocatedEventBus
         arguments: [ '@domain_event.locator' ]
         public: false
