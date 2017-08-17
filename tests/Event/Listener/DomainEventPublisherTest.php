@@ -15,21 +15,21 @@ use Doctrine\ORM\Event\OnFlushEventArgs;
 use Doctrine\ORM\Event\PostFlushEventArgs;
 use Doctrine\ORM\Events;
 use GpsLab\Bundle\DomainEvent\Event\Listener\DomainEventPublisher;
-use GpsLab\Bundle\DomainEvent\Service\EventPublisher;
 use GpsLab\Bundle\DomainEvent\Service\EventPuller;
+use GpsLab\Domain\Event\Bus\EventBus;
 use GpsLab\Domain\Event\Event;
 
 class DomainEventPublisherTest extends \PHPUnit_Framework_TestCase
 {
     /**
-     * @var \PHPUnit_Framework_MockObject_MockObject|EventPublisher
+     * @var \PHPUnit_Framework_MockObject_MockObject|EventBus
      */
-    private $event_publisher;
+    private $bus;
 
     /**
      * @var \PHPUnit_Framework_MockObject_MockObject|EventPuller
      */
-    private $event_puller;
+    private $puller;
 
     /**
      * @var \PHPUnit_Framework_MockObject_MockObject|EntityManagerInterface
@@ -53,38 +53,30 @@ class DomainEventPublisherTest extends \PHPUnit_Framework_TestCase
 
     protected function setUp()
     {
-        $this->event_publisher = $this
-            ->getMockBuilder(EventPublisher::class)
-            ->disableOriginalConstructor()
-            ->getMock()
-        ;
-        $this->event_puller = $this
-            ->getMockBuilder(EventPuller::class)
-            ->disableOriginalConstructor()
-            ->getMock()
-        ;
+        $this->bus = $this->getMock(EventBus::class);
+        $this->puller = $this->getMock(EventPuller::class);
         $this->em = $this->getMock(EntityManagerInterface::class);
         $this->on_flush = new OnFlushEventArgs($this->em);
         $this->post_flush = new PostFlushEventArgs($this->em);
 
-        $this->publisher = new DomainEventPublisher($this->event_publisher, $this->event_puller, true);
+        $this->publisher = new DomainEventPublisher($this->puller, $this->bus, true);
     }
 
     public function testDisabled()
     {
-        $publisher = new DomainEventPublisher($this->event_publisher, $this->event_puller, false);
+        $publisher = new DomainEventPublisher($this->puller, $this->bus, false);
         $this->assertEquals([], $publisher->getSubscribedEvents());
     }
 
     public function testEnabled()
     {
-        $publisher = new DomainEventPublisher($this->event_publisher, $this->event_puller, true);
+        $publisher = new DomainEventPublisher($this->puller, $this->bus, true);
         $this->assertEquals([Events::onFlush, Events::postFlush], $publisher->getSubscribedEvents());
     }
 
     public function testPreFlush()
     {
-        $this->event_puller
+        $this->puller
             ->expects($this->once())
             ->method('pull')
             ->with($this->em)
@@ -124,24 +116,41 @@ class DomainEventPublisherTest extends \PHPUnit_Framework_TestCase
      */
     public function testPublishEvents(array $remove_events, array $exist_events, array $expected_events)
     {
-        $this->event_puller
+        $this->puller
             ->expects($this->at(0))
             ->method('pull')
             ->with($this->em)
             ->will($this->returnValue($remove_events))
         ;
-        $this->event_puller
+        $this->puller
             ->expects($this->at(1))
             ->method('pull')
             ->with($this->em)
             ->will($this->returnValue($exist_events))
         ;
 
-        $this->event_publisher
-            ->expects($this->once())
-            ->method('publish')
-            ->with($expected_events)
-        ;
+        if ($expected_events) {
+            foreach ($expected_events as $i => $expected_event) {
+                $this->bus
+                    ->expects($this->at($i))
+                    ->method('publish')
+                    ->with($expected_event)
+                ;
+            }
+            $this->em
+                ->expects($this->once())
+                ->method('flush')
+            ;
+        } else {
+            $this->bus
+                ->expects($this->never())
+                ->method('publish')
+            ;
+            $this->em
+                ->expects($this->never())
+                ->method('flush')
+            ;
+        }
 
         $this->publisher->onFlush($this->on_flush);
         $this->publisher->postFlush($this->post_flush);
@@ -168,40 +177,43 @@ class DomainEventPublisherTest extends \PHPUnit_Framework_TestCase
             $this->getMock(Event::class),
         ];
 
-        $this->event_puller
+        $this->puller
             ->expects($this->at(0))
             ->method('pull')
             ->with($this->em)
             ->will($this->returnValue($remove_events1))
         ;
-        $this->event_puller
+        $this->puller
             ->expects($this->at(1))
             ->method('pull')
             ->with($this->em)
             ->will($this->returnValue($exist_events1))
         ;
-        $this->event_puller
+        $this->puller
             ->expects($this->at(2))
             ->method('pull')
             ->with($this->em)
             ->will($this->returnValue($remove_events2))
         ;
-        $this->event_puller
+        $this->puller
             ->expects($this->at(3))
             ->method('pull')
             ->with($this->em)
             ->will($this->returnValue($exist_events2))
         ;
 
-        $this->event_publisher
-            ->expects($this->at(0))
-            ->method('publish')
-            ->with(array_merge($remove_events1, $exist_events1))
-        ;
-        $this->event_publisher
-            ->expects($this->at(1))
-            ->method('publish')
-            ->with(array_merge($remove_events2, $exist_events2))
+        $expected_events = array_merge($remove_events1, $exist_events1, $remove_events2, $exist_events2);
+        foreach ($expected_events as $i => $expected_event) {
+            $this->bus
+                ->expects($this->at($i))
+                ->method('publish')
+                ->with($expected_event)
+            ;
+        }
+
+        $this->em
+            ->expects($this->exactly(2))
+            ->method('flush')
         ;
 
         $this->publisher->onFlush($this->on_flush);

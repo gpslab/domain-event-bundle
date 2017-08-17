@@ -14,21 +14,21 @@ use Doctrine\Common\EventSubscriber;
 use Doctrine\ORM\Event\OnFlushEventArgs;
 use Doctrine\ORM\Event\PostFlushEventArgs;
 use Doctrine\ORM\Events;
-use GpsLab\Bundle\DomainEvent\Service\EventPublisher;
 use GpsLab\Bundle\DomainEvent\Service\EventPuller;
+use GpsLab\Domain\Event\Bus\EventBus;
 use GpsLab\Domain\Event\Event;
 
 class DomainEventPublisher implements EventSubscriber
 {
     /**
-     * @var EventPublisher
-     */
-    private $publisher;
-
-    /**
      * @var EventPuller
      */
     private $puller;
+
+    /**
+     * @var EventBus
+     */
+    private $bus;
 
     /**
      * @var bool
@@ -41,13 +41,13 @@ class DomainEventPublisher implements EventSubscriber
     private $events = [];
 
     /**
-     * @param EventPublisher $publisher
-     * @param EventPuller    $puller
-     * @param bool           $enable
+     * @param EventPuller $puller
+     * @param EventBus    $bus
+     * @param bool        $enable
      */
-    public function __construct(EventPublisher $publisher, EventPuller $puller, $enable)
+    public function __construct(EventPuller $puller, EventBus $bus, $enable)
     {
-        $this->publisher = $publisher;
+        $this->bus = $bus;
         $this->puller = $puller;
         $this->enable = $enable;
     }
@@ -88,6 +88,14 @@ class DomainEventPublisher implements EventSubscriber
         // it necessary for fix recursive publish of events
         $this->events = [];
 
-        $this->publisher->publish($events);
+        // flush only if has domain events
+        // it necessary for fix recursive handle flush
+        if ($events) {
+            foreach ($events as $event) {
+                $this->bus->publish($event);
+            }
+
+            $args->getEntityManager()->flush();
+        }
     }
 }
