@@ -3,7 +3,7 @@ services:
         class: GpsLab\Bundle\DomainEvent\Event\Listener\DomainEventPublisher
         arguments: [ '@domain_event.puller', '@domain_event.bus', ~ ]
         tags:
-            - { name: doctrine.event_subscriber, connection: default }
+            - { name: doctrine.event_subscriber }
 
     domain_event.puller:
         class: GpsLab\Bundle\DomainEvent\Service\EventPuller
