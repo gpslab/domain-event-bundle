@@ -73,7 +73,7 @@ class DomainEventPublisher implements EventSubscriber
     public function onFlush(OnFlushEventArgs $args)
     {
         // aggregate events from deleted entities
-        $this->events = $this->puller->pull($args->getEntityManager());
+        $this->events = $this->puller->pull($args->getEntityManager()->getUnitOfWork());
     }
 
     /**
@@ -82,7 +82,7 @@ class DomainEventPublisher implements EventSubscriber
     public function postFlush(PostFlushEventArgs $args)
     {
         // aggregate PreRemove/PostRemove events
-        $events = array_merge($this->events, $this->puller->pull($args->getEntityManager()));
+        $events = array_merge($this->events, $this->puller->pull($args->getEntityManager()->getUnitOfWork()));
 
         // clear aggregate events before publish it
         // it necessary for fix recursive publish of events

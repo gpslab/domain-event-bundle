@@ -14,6 +14,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Event\OnFlushEventArgs;
 use Doctrine\ORM\Event\PostFlushEventArgs;
 use Doctrine\ORM\Events;
+use Doctrine\ORM\UnitOfWork;
 use GpsLab\Bundle\DomainEvent\Event\Listener\DomainEventPublisher;
 use GpsLab\Bundle\DomainEvent\Service\EventPuller;
 use GpsLab\Domain\Event\Bus\EventBus;
@@ -37,6 +38,11 @@ class DomainEventPublisherTest extends \PHPUnit_Framework_TestCase
     private $em;
 
     /**
+     * @var \PHPUnit_Framework_MockObject_MockObject|UnitOfWork
+     */
+    private $uow;
+
+    /**
      * @var OnFlushEventArgs
      */
     private $on_flush;
@@ -58,6 +64,11 @@ class DomainEventPublisherTest extends \PHPUnit_Framework_TestCase
         $this->em = $this->getMock(EntityManagerInterface::class);
         $this->on_flush = new OnFlushEventArgs($this->em);
         $this->post_flush = new PostFlushEventArgs($this->em);
+        $this->uow = $this
+            ->getMockBuilder(UnitOfWork::class)
+            ->disableOriginalConstructor()
+            ->getMock()
+        ;
 
         $this->publisher = new DomainEventPublisher($this->puller, $this->bus, true);
     }
@@ -76,10 +87,16 @@ class DomainEventPublisherTest extends \PHPUnit_Framework_TestCase
 
     public function testPreFlush()
     {
+        $this->em
+            ->expects($this->once())
+            ->method('getUnitOfWork')
+            ->will($this->returnValue($this->uow))
+        ;
+
         $this->puller
             ->expects($this->once())
             ->method('pull')
-            ->with($this->em)
+            ->with($this->uow)
         ;
 
         $this->publisher->onFlush($this->on_flush);
@@ -121,13 +138,13 @@ class DomainEventPublisherTest extends \PHPUnit_Framework_TestCase
         $this->puller
             ->expects($this->at(0))
             ->method('pull')
-            ->with($this->em)
+            ->with($this->uow)
             ->will($this->returnValue($remove_events))
         ;
         $this->puller
             ->expects($this->at(1))
             ->method('pull')
-            ->with($this->em)
+            ->with($this->uow)
             ->will($this->returnValue($exist_events))
         ;
 
@@ -155,6 +172,11 @@ class DomainEventPublisherTest extends \PHPUnit_Framework_TestCase
                 ->method('flush')
             ;
         }
+        $this->em
+            ->expects($this->atLeastOnce())
+            ->method('getUnitOfWork')
+            ->will($this->returnValue($this->uow))
+        ;
 
         $this->publisher->onFlush($this->on_flush);
         $this->publisher->postFlush($this->post_flush);
@@ -181,28 +203,38 @@ class DomainEventPublisherTest extends \PHPUnit_Framework_TestCase
             $this->getMock(Event::class),
         ];
 
+        $this->em
+            ->expects($this->atLeastOnce())
+            ->method('getUnitOfWork')
+            ->will($this->returnValue($this->uow))
+        ;
+        $this->em
+            ->expects($this->exactly(2))
+            ->method('flush')
+        ;
+
         $this->puller
             ->expects($this->at(0))
             ->method('pull')
-            ->with($this->em)
+            ->with($this->uow)
             ->will($this->returnValue($remove_events1))
         ;
         $this->puller
             ->expects($this->at(1))
             ->method('pull')
-            ->with($this->em)
+            ->with($this->uow)
             ->will($this->returnValue($exist_events1))
         ;
         $this->puller
             ->expects($this->at(2))
             ->method('pull')
-            ->with($this->em)
+            ->with($this->uow)
             ->will($this->returnValue($remove_events2))
         ;
         $this->puller
             ->expects($this->at(3))
             ->method('pull')
-            ->with($this->em)
+            ->with($this->uow)
             ->will($this->returnValue($exist_events2))
         ;
 
@@ -214,11 +246,6 @@ class DomainEventPublisherTest extends \PHPUnit_Framework_TestCase
                 ->with($expected_event)
             ;
         }
-
-        $this->em
-            ->expects($this->exactly(2))
-            ->method('flush')
-        ;
 
         $this->publisher->onFlush($this->on_flush);
         $this->publisher->postFlush($this->post_flush);

@@ -11,7 +11,6 @@
 namespace GpsLab\Bundle\DomainEvent\Tests\Service;
 
 use Doctrine\Common\Persistence\Proxy;
-use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\UnitOfWork;
 use GpsLab\Bundle\DomainEvent\Service\EventPuller;
 use GpsLab\Domain\Event\Aggregator\AggregateEvents;
@@ -19,11 +18,6 @@ use GpsLab\Domain\Event\Event;
 
 class EventPullerTest extends \PHPUnit_Framework_TestCase
 {
-    /**
-     * @var \PHPUnit_Framework_MockObject_MockObject|EntityManagerInterface
-     */
-    private $em;
-
     /**
      * @var \PHPUnit_Framework_MockObject_MockObject|UnitOfWork
      */
@@ -40,13 +34,6 @@ class EventPullerTest extends \PHPUnit_Framework_TestCase
             ->getMockBuilder(UnitOfWork::class)
             ->disableOriginalConstructor()
             ->getMock()
-        ;
-
-        $this->em = $this->getMock(EntityManagerInterface::class);
-        $this->em
-            ->expects($this->once())
-            ->method('getUnitOfWork')
-            ->will($this->returnValue($this->uow))
         ;
 
         $this->puller = new EventPuller();
@@ -172,7 +159,7 @@ class EventPullerTest extends \PHPUnit_Framework_TestCase
             $map_events
         );
 
-        $this->assertEquals($expected_events, $this->puller->pull($this->em));
+        $this->assertEquals($expected_events, $this->puller->pull($this->uow));
     }
 
     /**
