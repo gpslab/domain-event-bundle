@@ -52,153 +52,159 @@ class EventPullerTest extends \PHPUnit_Framework_TestCase
         $this->puller = new EventPuller();
     }
 
-    public function testNoEntities()
+    /**
+     * @return array
+     */
+    public function events()
     {
-        $this->uow
-            ->expects($this->once())
-            ->method('getIdentityMap')
-            ->will($this->returnValue([]))
-        ;
-        $this->uow
-            ->expects($this->once())
-            ->method('getScheduledEntityDeletions')
-            ->will($this->returnValue([]))
-        ;
-
-        $this->assertEquals([], $this->puller->pull($this->em));
-    }
-
-    public function testNoEvents()
-    {
-        $exist_aggregator1 = $this->getMock(AggregateEvents::class);
-        $exist_aggregator1
-            ->expects($this->once())
-            ->method('pullEvents')
-            ->will($this->returnValue([]))
-        ;
-        $exist_aggregator2 = $this->getMock(AggregateEvents::class);
-        $exist_aggregator2
-            ->expects($this->once())
-            ->method('pullEvents')
-            ->will($this->returnValue([]))
-        ;
-
-        $removed_aggregator1 = $this->getMock(AggregateEvents::class);
-        $removed_aggregator1
-            ->expects($this->once())
-            ->method('pullEvents')
-            ->will($this->returnValue([]))
-        ;
-        $removed_aggregator2 = $this->getMock(AggregateEvents::class);
-        $removed_aggregator2
-            ->expects($this->once())
-            ->method('pullEvents')
-            ->will($this->returnValue([]))
-        ;
-
-        $this->uow
-            ->expects($this->once())
-            ->method('getIdentityMap')
-            ->will($this->returnValue([
-                [
-                    $this->getMock(Proxy::class),
-                    $this->getMock(Proxy::class),
-                ],
-                [
-                    new \stdClass(),
-                    new \stdClass(),
-                ],
-                [
-                    $exist_aggregator1,
-                    $exist_aggregator2,
-                ],
-            ]))
-        ;
-        $this->uow
-            ->expects($this->once())
-            ->method('getScheduledEntityDeletions')
-            ->will($this->returnValue([
-                $removed_aggregator1,
-                $removed_aggregator2
-            ]))
-        ;
-
-        $this->assertEquals([], $this->puller->pull($this->em));
-    }
-
-    public function testPull()
-    {
-        $events = [
+        $events1 = [
             $this->getMock(Event::class),
             $this->getMock(Event::class),
             $this->getMock(Event::class),
             $this->getMock(Event::class),
             $this->getMock(Event::class),
         ];
+        $events2 = [
+            $this->getMock(Event::class),
+            $this->getMock(Event::class),
+            $this->getMock(Event::class),
+            $this->getMock(Event::class),
+        ];
+        $events3 = [
+            $this->getMock(Event::class),
+            $this->getMock(Event::class),
+            $this->getMock(Event::class),
+        ];
+        $events4 = [
+            $this->getMock(Event::class),
+            $this->getMock(Event::class),
+        ];
+
+        return [
+            [[], [], [], []],
+            [$events1, [], [], []],
+            [[], $events1, [], []],
+            [[], [], $events1, []],
+            [[], [], [], $events1],
+            [$events1, $events2, [], []],
+            [$events1, [], $events2, []],
+            [$events1, [], [], $events2],
+            [[], $events1, [], $events2],
+            [[], [], $events1, $events2],
+            [$events1, $events2, $events3, []],
+            [$events1, $events2, [], $events3],
+            [$events1, [], $events2, $events3],
+            [[], $events1, $events2, $events3],
+            [$events1, $events2, $events3, $events4],
+        ];
+    }
+
+    /**
+     * @dataProvider events
+     *
+     * @param array $deletions_events
+     * @param array $insertions_events
+     * @param array $updates_events
+     * @param array $map_events
+     */
+    public function testPull(
+        array $deletions_events,
+        array $insertions_events,
+        array $updates_events,
+        array $map_events
+    ) {
+        if ($map_events) {
+            $slice = round(count($map_events) / 2);
+            $aggregator1 = $this->getMock(AggregateEvents::class);
+            $aggregator1
+                ->expects($this->once())
+                ->method('pullEvents')
+                ->will($this->returnValue(array_slice($map_events, 0, $slice)));
+            $aggregator2 = $this->getMock(AggregateEvents::class);
+            $aggregator2
+                ->expects($this->once())
+                ->method('pullEvents')
+                ->will($this->returnValue(array_slice($map_events, $slice)));
+
+            $map = [
+                [
+                    $this->getMock(Proxy::class),
+                    $aggregator1,
+                ],
+                [
+                    $aggregator2,
+                    new \stdClass(),
+                ],
+                [
+                    new \stdClass(),
+                    $this->getMock(Proxy::class),
+                ],
+            ];
+        } else {
+            $map = [];
+        }
+
+        $this->uow
+            ->expects($this->once())
+            ->method('getScheduledEntityDeletions')
+            ->will($this->returnValue($this->getEntitiesFroEvents($deletions_events)))
+        ;
+        $this->uow
+            ->expects($this->once())
+            ->method('getScheduledEntityInsertions')
+            ->will($this->returnValue($this->getEntitiesFroEvents($insertions_events)))
+        ;
+        $this->uow
+            ->expects($this->once())
+            ->method('getScheduledEntityUpdates')
+            ->will($this->returnValue($this->getEntitiesFroEvents($updates_events)))
+        ;
+        $this->uow
+            ->expects($this->once())
+            ->method('getIdentityMap')
+            ->will($this->returnValue($map))
+        ;
+
+        $expected_events = array_merge(
+            $deletions_events,
+            $insertions_events,
+            $updates_events,
+            $map_events
+        );
+
+        $this->assertEquals($expected_events, $this->puller->pull($this->em));
+    }
+
+    /**
+     * @param Event[] $events
+     *
+     * @return object[]
+     */
+    private function getEntitiesFroEvents(array $events)
+    {
+        if (!$events) {
+            return [];
+        }
 
         $slice = round(count($events) / 2);
-        $exist_aggregator1 = $this->getMock(AggregateEvents::class);
-        $exist_aggregator1
+        $aggregator1 = $this->getMock(AggregateEvents::class);
+        $aggregator1
             ->expects($this->once())
             ->method('pullEvents')
             ->will($this->returnValue(array_slice($events, 0, $slice)))
         ;
-        $exist_aggregator2 = $this->getMock(AggregateEvents::class);
-        $exist_aggregator2
+        $aggregator2 = $this->getMock(AggregateEvents::class);
+        $aggregator2
             ->expects($this->once())
             ->method('pullEvents')
             ->will($this->returnValue(array_slice($events, $slice)))
         ;
 
-        $on_remove_events = [
-            $this->getMock(Event::class),
-            $this->getMock(Event::class),
-            $this->getMock(Event::class),
-            $this->getMock(Event::class),
-            $this->getMock(Event::class),
+        return [
+            $this->getMock(Proxy::class),
+            new \stdClass(),
+            $aggregator1,
+            $aggregator2,
         ];
-
-        $slice = round(count($events) / 2);
-        $removed_aggregator1 = $this->getMock(AggregateEvents::class);
-        $removed_aggregator1
-            ->expects($this->once())
-            ->method('pullEvents')
-            ->will($this->returnValue(array_slice($on_remove_events, 0, $slice)))
-        ;
-        $removed_aggregator2 = $this->getMock(AggregateEvents::class);
-        $removed_aggregator2
-            ->expects($this->once())
-            ->method('pullEvents')
-            ->will($this->returnValue(array_slice($on_remove_events, $slice)))
-        ;
-
-        $this->uow
-            ->expects($this->once())
-            ->method('getIdentityMap')
-            ->will($this->returnValue([
-                [
-                    $this->getMock(Proxy::class),
-                    $this->getMock(Proxy::class),
-                ],
-                [
-                    new \stdClass(),
-                    new \stdClass(),
-                ],
-                [
-                    $exist_aggregator1,
-                    $exist_aggregator2,
-                ],
-            ]))
-        ;
-        $this->uow
-            ->expects($this->once())
-            ->method('getScheduledEntityDeletions')
-            ->will($this->returnValue([
-                $removed_aggregator1,
-                $removed_aggregator2
-            ]))
-        ;
-
-        $this->assertEquals(array_merge($on_remove_events, $events), $this->puller->pull($this->em));
     }
 }
