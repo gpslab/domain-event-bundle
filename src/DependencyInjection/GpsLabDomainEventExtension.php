@@ -34,7 +34,7 @@ class GpsLabDomainEventExtension extends Extension
         $container->setAlias('domain_event.queue', $this->queueRealName($config['queue']));
         $container->setAlias('domain_event.locator', $this->locatorRealName($config['locator']));
 
-        $container->getDefinition('domain_event.publisher')->replaceArgument(1, $config['publish_on_flush']);
+        $container->getDefinition('domain_event.publisher')->replaceArgument(2, $config['publish_on_flush']);
     }
 
     /**

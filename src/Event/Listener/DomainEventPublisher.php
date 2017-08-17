@@ -11,18 +11,22 @@
 namespace GpsLab\Bundle\DomainEvent\Event\Listener;
 
 use Doctrine\Common\EventSubscriber;
-use Doctrine\Common\Persistence\Proxy;
-use Doctrine\ORM\Event\PostFlushEventArgs;
 use Doctrine\ORM\Events;
-use GpsLab\Domain\Event\Aggregator\AggregateEvents;
-use GpsLab\Domain\Event\Bus\EventBus;
+use GpsLab\Bundle\DomainEvent\Service\EventPublisher;
+use GpsLab\Bundle\DomainEvent\Service\EventPuller;
+use GpsLab\Domain\Event\Event;
 
 class DomainEventPublisher implements EventSubscriber
 {
     /**
-     * @var EventBus
+     * @var EventPublisher
      */
-    private $bus;
+    private $publisher;
+
+    /**
+     * @var EventPuller
+     */
+    private $puller;
 
     /**
      * @var bool
@@ -30,12 +34,19 @@ class DomainEventPublisher implements EventSubscriber
     private $enable;
 
     /**
-     * @param EventBus $bus
-     * @param bool     $enable
+     * @var Event[]
      */
-    public function __construct(EventBus $bus, $enable)
+    private $events = [];
+
+    /**
+     * @param EventPublisher $publisher
+     * @param EventPuller    $puller
+     * @param bool           $enable
+     */
+    public function __construct(EventPublisher $publisher, EventPuller $puller, $enable)
     {
-        $this->bus = $bus;
+        $this->publisher = $publisher;
+        $this->puller = $puller;
         $this->enable = $enable;
     }
 
@@ -49,47 +60,25 @@ class DomainEventPublisher implements EventSubscriber
         }
 
         return [
+            Events::preFlush,
             Events::postFlush,
         ];
     }
 
-    /**
-     * @param PostFlushEventArgs $args
-     */
-    public function postFlush(PostFlushEventArgs $args)
+    public function preFlush()
     {
-        $map = $args->getEntityManager()->getUnitOfWork()->getIdentityMap();
-
-        // flush only if has domain events
-        // it necessary for fix recursive handle flush
-        if ($this->publish($map)) {
-            $args->getEntityManager()->flush();
-        }
+        // aggregate events from deleted entities
+        $this->events = $this->puller->pull();
     }
 
-    /**
-     * @param array $map
-     *
-     * @return bool
-     */
-    private function publish(array $map)
+    public function postFlush()
     {
-        $has_events = false;
-        foreach ($map as $entities) {
-            foreach ($entities as $entity) {
-                // ignore Doctrine proxy classes
-                // proxy class can't have a domain events
-                if ($entity instanceof Proxy || !($entity instanceof AggregateEvents)) {
-                    break;
-                }
+        $events = array_merge($this->events, $this->puller->pull());
 
-                foreach ($entity->pullEvents() as $event) {
-                    $this->bus->publish($event);
-                    $has_events = true;
-                }
-            }
-        }
+        // clear aggregate events before publish it
+        // it necessary for fix recursive publish of events
+        $this->events = [];
 
-        return $has_events;
+        $this->publisher->publish($events);
     }
 }
