@@ -90,20 +90,23 @@ class DomainEventPublisherTest extends \PHPUnit_Framework_TestCase
      */
     public function events()
     {
-        $remove_events = [
+        $events1 = [
+            $this->getMock(Event::class),
             $this->getMock(Event::class),
             $this->getMock(Event::class),
         ];
-        $exist_events = [
+        $events2 = [
+            $this->getMock(Event::class),
+            $this->getMock(Event::class),
             $this->getMock(Event::class),
             $this->getMock(Event::class),
         ];
 
         return [
             [[], [], []],
-            [$remove_events, [], $remove_events],
-            [[], $exist_events, $exist_events],
-            [$remove_events, $exist_events, array_merge($remove_events, $exist_events)],
+            [$events1, []],
+            [[], $events2],
+            [$events1, $events2],
         ];
     }
 
@@ -112,9 +115,8 @@ class DomainEventPublisherTest extends \PHPUnit_Framework_TestCase
      *
      * @param array $remove_events
      * @param array $exist_events
-     * @param array $expected_events
      */
-    public function testPublishEvents(array $remove_events, array $exist_events, array $expected_events)
+    public function testPublishEvents(array $remove_events, array $exist_events)
     {
         $this->puller
             ->expects($this->at(0))
@@ -128,6 +130,8 @@ class DomainEventPublisherTest extends \PHPUnit_Framework_TestCase
             ->with($this->em)
             ->will($this->returnValue($exist_events))
         ;
+
+        $expected_events = array_merge($remove_events, $exist_events);
 
         if ($expected_events) {
             foreach ($expected_events as $i => $expected_event) {
