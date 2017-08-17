@@ -43,12 +43,12 @@ class DomainEventPublisherTest extends \PHPUnit_Framework_TestCase
     private $uow;
 
     /**
-     * @var OnFlushEventArgs
+     * @var \PHPUnit_Framework_MockObject_MockObject|OnFlushEventArgs
      */
     private $on_flush;
 
     /**
-     * @var PostFlushEventArgs
+     * @var \PHPUnit_Framework_MockObject_MockObject|PostFlushEventArgs
      */
     private $post_flush;
 
@@ -62,8 +62,29 @@ class DomainEventPublisherTest extends \PHPUnit_Framework_TestCase
         $this->bus = $this->getMock(EventBus::class);
         $this->puller = $this->getMock(EventPuller::class);
         $this->em = $this->getMock(EntityManagerInterface::class);
-        $this->on_flush = new OnFlushEventArgs($this->em);
-        $this->post_flush = new PostFlushEventArgs($this->em);
+
+        $this->on_flush = $this
+            ->getMockBuilder(OnFlushEventArgs::class)
+            ->disableOriginalConstructor()
+            ->getMock()
+        ;
+        $this->on_flush
+            ->expects($this->any())
+            ->method('getEntityManager')
+            ->will($this->returnValue($this->em))
+        ;
+
+        $this->post_flush = $this
+            ->getMockBuilder(PostFlushEventArgs::class)
+            ->disableOriginalConstructor()
+            ->getMock()
+        ;
+        $this->post_flush
+            ->expects($this->any())
+            ->method('getEntityManager')
+            ->will($this->returnValue($this->em))
+        ;
+
         $this->uow = $this
             ->getMockBuilder(UnitOfWork::class)
             ->disableOriginalConstructor()
