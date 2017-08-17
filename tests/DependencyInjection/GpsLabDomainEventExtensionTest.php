@@ -111,7 +111,7 @@ class GpsLabDomainEventExtensionTest extends \PHPUnit_Framework_TestCase
         $publisher
             ->expects($this->once())
             ->method('replaceArgument')
-            ->with(1, $publish_on_flush)
+            ->with(2, $publish_on_flush)
         ;
 
         $this->container

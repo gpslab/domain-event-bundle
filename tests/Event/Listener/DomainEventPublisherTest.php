@@ -10,37 +10,23 @@
 
 namespace GpsLab\Bundle\DomainEvent\Tests\Event\Listener;
 
-use Doctrine\Common\Persistence\Proxy;
-use Doctrine\ORM\EntityManager;
-use Doctrine\ORM\Event\PostFlushEventArgs;
 use Doctrine\ORM\Events;
-use Doctrine\ORM\UnitOfWork;
 use GpsLab\Bundle\DomainEvent\Event\Listener\DomainEventPublisher;
-use GpsLab\Domain\Event\Aggregator\AggregateEvents;
-use GpsLab\Domain\Event\Bus\EventBus;
+use GpsLab\Bundle\DomainEvent\Service\EventPublisher;
+use GpsLab\Bundle\DomainEvent\Service\EventPuller;
 use GpsLab\Domain\Event\Event;
 
 class DomainEventPublisherTest extends \PHPUnit_Framework_TestCase
 {
     /**
-     * @var \PHPUnit_Framework_MockObject_MockObject|EventBus
+     * @var \PHPUnit_Framework_MockObject_MockObject|EventPublisher
      */
-    private $bus;
+    private $event_publisher;
 
     /**
-     * @var \PHPUnit_Framework_MockObject_MockObject|PostFlushEventArgs
+     * @var \PHPUnit_Framework_MockObject_MockObject|EventPuller
      */
-    private $args;
-
-    /**
-     * @var \PHPUnit_Framework_MockObject_MockObject|EntityManager
-     */
-    private $em;
-
-    /**
-     * @var \PHPUnit_Framework_MockObject_MockObject|UnitOfWork
-     */
-    private $uow;
+    private $event_puller;
     /**
      * @var DomainEventPublisher
      */
@@ -48,203 +34,151 @@ class DomainEventPublisherTest extends \PHPUnit_Framework_TestCase
 
     protected function setUp()
     {
-        $this->bus = $this->getMock(EventBus::class);
-        $this->args = $this
-            ->getMockBuilder(PostFlushEventArgs::class)
+        $this->event_publisher = $this
+            ->getMockBuilder(EventPublisher::class)
             ->disableOriginalConstructor()
             ->getMock()
         ;
-        $this->em = $this
-            ->getMockBuilder(EntityManager::class)
+        $this->event_puller = $this
+            ->getMockBuilder(EventPuller::class)
             ->disableOriginalConstructor()
             ->getMock()
         ;
-        $this->uow = $this
-            ->getMockBuilder(UnitOfWork::class)
-            ->disableOriginalConstructor()
-            ->getMock()
-        ;
-        $this->publisher = new DomainEventPublisher($this->bus, true);
+
+        $this->publisher = new DomainEventPublisher($this->event_publisher, $this->event_puller, true);
     }
 
-    public function testSubscribedEventsDisabled()
+    public function testDisabled()
     {
-        $publisher = new DomainEventPublisher($this->bus, false);
+        $publisher = new DomainEventPublisher($this->event_publisher, $this->event_puller, false);
         $this->assertEquals([], $publisher->getSubscribedEvents());
     }
 
-    public function testSubscribedEventsEnabled()
+    public function testEnabled()
     {
-        $publisher = new DomainEventPublisher($this->bus, true);
-        $this->assertEquals([Events::postFlush], $publisher->getSubscribedEvents());
+        $publisher = new DomainEventPublisher($this->event_publisher, $this->event_puller, true);
+        $this->assertEquals([Events::preFlush, Events::postFlush], $publisher->getSubscribedEvents());
     }
 
-    public function testPostFlushNotEvents()
+    public function testPreFlush()
     {
-        $map = [];
-
-        $this->args
-            ->expects($this->atLeastOnce())
-            ->method('getEntityManager')
-            ->will($this->returnValue($this->em))
-        ;
-
-        $this->em
+        $this->event_puller
             ->expects($this->once())
-            ->method('getUnitOfWork')
-            ->will($this->returnValue($this->uow))
-        ;
-        $this->em
-            ->expects($this->never())
-            ->method('flush')
+            ->method('pull')
         ;
 
-        $this->bus
-            ->expects($this->never())
+        $this->publisher->preFlush();
+    }
+
+    /**
+     * @return array
+     */
+    public function events()
+    {
+        $remove_events = [
+            $this->getMock(Event::class),
+            $this->getMock(Event::class),
+        ];
+        $exist_events = [
+            $this->getMock(Event::class),
+            $this->getMock(Event::class),
+        ];
+
+        return [
+            [[], [], []],
+            [$remove_events, [], $remove_events],
+            [[], $exist_events, $exist_events],
+            [$remove_events, $exist_events, array_merge($remove_events, $exist_events)],
+        ];
+    }
+
+    /**
+     * @dataProvider events
+     *
+     * @param array $remove_events
+     * @param array $exist_events
+     * @param array $expected_events
+     */
+    public function testPublishEvents(array $remove_events, array $exist_events, array $expected_events)
+    {
+        $this->event_puller
+            ->expects($this->at(0))
+            ->method('pull')
+            ->will($this->returnValue($remove_events))
+        ;
+        $this->event_puller
+            ->expects($this->at(1))
+            ->method('pull')
+            ->will($this->returnValue($exist_events))
+        ;
+
+        $this->event_publisher
+            ->expects($this->once())
             ->method('publish')
-        ;
-        $this->bus
-            ->expects($this->never())
-            ->method('pullAndPublish')
+            ->with($expected_events)
         ;
 
-        $this->uow
-            ->expects($this->once())
-            ->method('getIdentityMap')
-            ->will($this->returnValue($map))
-        ;
-
-        $this->publisher->postFlush($this->args);
+        $this->publisher->preFlush();
+        $this->publisher->postFlush();
     }
 
-    public function testPostFlushNotDomainEvents()
+    public function testRecursivePublish()
     {
-        $aggregator1 = $this->getMock(AggregateEvents::class);
-        $aggregator1
-            ->expects($this->once())
-            ->method('pullEvents')
-            ->will($this->returnValue([]))
-        ;
-        $aggregator2 = $this->getMock(AggregateEvents::class);
-        $aggregator2
-            ->expects($this->once())
-            ->method('pullEvents')
-            ->will($this->returnValue([]))
-        ;
-
-        $map = [
-            [
-                $this->getMock(Proxy::class),
-                $this->getMock(Proxy::class),
-            ],
-            [
-                new \stdClass(),
-                new \stdClass(),
-            ],
-            [
-                $aggregator1,
-                $aggregator2,
-            ],
+        $remove_events1 = [
+            $this->getMock(Event::class),
+            $this->getMock(Event::class),
+        ];
+        $remove_events2 = [
+            $this->getMock(Event::class),
+            $this->getMock(Event::class),
+            $this->getMock(Event::class),
+        ];
+        $exist_events1 = [
+            $this->getMock(Event::class),
+            $this->getMock(Event::class),
+        ];
+        $exist_events2 = [
+            $this->getMock(Event::class),
+            $this->getMock(Event::class),
+            $this->getMock(Event::class),
         ];
 
-        $this->args
-            ->expects($this->atLeastOnce())
-            ->method('getEntityManager')
-            ->will($this->returnValue($this->em))
+        $this->event_puller
+            ->expects($this->at(0))
+            ->method('pull')
+            ->will($this->returnValue($remove_events1))
+        ;
+        $this->event_puller
+            ->expects($this->at(1))
+            ->method('pull')
+            ->will($this->returnValue($exist_events1))
+        ;
+        $this->event_puller
+            ->expects($this->at(2))
+            ->method('pull')
+            ->will($this->returnValue($remove_events2))
+        ;
+        $this->event_puller
+            ->expects($this->at(3))
+            ->method('pull')
+            ->will($this->returnValue($exist_events2))
         ;
 
-        $this->em
-            ->expects($this->once())
-            ->method('getUnitOfWork')
-            ->will($this->returnValue($this->uow))
-        ;
-        $this->em
-            ->expects($this->never())
-            ->method('flush')
-        ;
-
-        $this->bus
-            ->expects($this->never())
+        $this->event_publisher
+            ->expects($this->at(0))
             ->method('publish')
+            ->with(array_merge($remove_events1, $exist_events1))
         ;
-        $this->bus
-            ->expects($this->never())
-            ->method('pullAndPublish')
-        ;
-
-        $this->uow
-            ->expects($this->once())
-            ->method('getIdentityMap')
-            ->will($this->returnValue($map))
+        $this->event_publisher
+            ->expects($this->at(1))
+            ->method('publish')
+            ->with(array_merge($remove_events2, $exist_events2))
         ;
 
-        $this->publisher->postFlush($this->args);
-    }
-
-    public function testPostFlushPublishDomainEvents()
-    {
-        $events = [
-            $this->getMock(Event::class),
-            $this->getMock(Event::class),
-            $this->getMock(Event::class),
-            $this->getMock(Event::class),
-            $this->getMock(Event::class),
-        ];
-
-        $aggregator1 = $this->getMock(AggregateEvents::class);
-        $aggregator1
-            ->expects($this->once())
-            ->method('pullEvents')
-            ->will($this->returnValue(array_slice($events, 0, round(count($events) / 2))))
-        ;
-        $aggregator2 = $this->getMock(AggregateEvents::class);
-        $aggregator2
-            ->expects($this->once())
-            ->method('pullEvents')
-            ->will($this->returnValue(array_slice($events, round(count($events) / 2))))
-        ;
-
-        $map = [
-            [
-                $aggregator1,
-                $aggregator2,
-            ],
-        ];
-
-        $this->args
-            ->expects($this->atLeastOnce())
-            ->method('getEntityManager')
-            ->will($this->returnValue($this->em))
-        ;
-
-        $this->em
-            ->expects($this->once())
-            ->method('getUnitOfWork')
-            ->will($this->returnValue($this->uow))
-        ;
-        $this->em
-            ->expects($this->once())
-            ->method('flush')
-        ;
-
-        foreach ($events as $i => $event) {
-            $this->bus
-                ->expects($this->at($i))
-                ->method('publish')
-                ->with($event)
-            ;
-        }
-        $this->bus
-            ->expects($this->never())
-            ->method('pullAndPublish')
-        ;
-
-        $this->uow
-            ->expects($this->once())
-            ->method('getIdentityMap')
-            ->will($this->returnValue($map))
-        ;
-
-        $this->publisher->postFlush($this->args);
+        $this->publisher->preFlush();
+        $this->publisher->postFlush();
+        // recursive call
+        $this->publisher->preFlush();
+        $this->publisher->postFlush();
     }
 }

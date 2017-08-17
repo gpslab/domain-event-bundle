@@ -21,14 +21,14 @@ class EventPuller
     /**
      * @var UnitOfWork
      */
-    private $unit_of_work;
+    private $uow;
 
     /**
      * @param EntityManagerInterface $em
      */
     public function __construct(EntityManagerInterface $em)
     {
-        $this->unit_of_work = $em->getUnitOfWork();
+        $this->uow = $em->getUnitOfWork();
     }
 
     /**
@@ -37,13 +37,13 @@ class EventPuller
     public function pull()
     {
         $events = [];
-        foreach ($this->unit_of_work->getIdentityMap() as $entities) {
+        foreach ($this->uow->getIdentityMap() as $entities) {
             foreach ($entities as $entity) {
                 $events = array_merge($events, $this->pullFromEntity($entity));
             }
         }
 
-        foreach ($this->unit_of_work->getScheduledEntityDeletions() as $entity) {
+        foreach ($this->uow->getScheduledEntityDeletions() as $entity) {
             $events = array_merge($events, $this->pullFromEntity($entity));
         }
 
