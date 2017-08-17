@@ -90,7 +90,7 @@ class DomainEventPublisher implements EventSubscriber
 
         // flush only if has domain events
         // it necessary for fix recursive handle flush
-        if ($events) {
+        if (!empty($events)) {
             foreach ($events as $event) {
                 $this->bus->publish($event);
             }
