@@ -11,6 +11,8 @@
 namespace GpsLab\Bundle\DomainEvent\Event\Listener;
 
 use Doctrine\Common\EventSubscriber;
+use Doctrine\ORM\Event\OnFlushEventArgs;
+use Doctrine\ORM\Event\PostFlushEventArgs;
 use Doctrine\ORM\Events;
 use GpsLab\Bundle\DomainEvent\Service\EventPublisher;
 use GpsLab\Bundle\DomainEvent\Service\EventPuller;
@@ -60,20 +62,27 @@ class DomainEventPublisher implements EventSubscriber
         }
 
         return [
-            Events::preFlush,
+            Events::onFlush,
             Events::postFlush,
         ];
     }
 
-    public function preFlush()
+    /**
+     * @param OnFlushEventArgs $args
+     */
+    public function onFlush(OnFlushEventArgs $args)
     {
         // aggregate events from deleted entities
-        $this->events = $this->puller->pull();
+        $this->events = $this->puller->pull($args->getEntityManager());
     }
 
-    public function postFlush()
+    /**
+     * @param PostFlushEventArgs $args
+     */
+    public function postFlush(PostFlushEventArgs $args)
     {
-        $events = array_merge($this->events, $this->puller->pull());
+        // aggregate PreRemove/PostRemove events
+        $events = array_merge($this->events, $this->puller->pull($args->getEntityManager()));
 
         // clear aggregate events before publish it
         // it necessary for fix recursive publish of events

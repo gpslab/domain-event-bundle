@@ -10,6 +10,9 @@
 
 namespace GpsLab\Bundle\DomainEvent\Tests\Event\Listener;
 
+use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\Event\OnFlushEventArgs;
+use Doctrine\ORM\Event\PostFlushEventArgs;
 use Doctrine\ORM\Events;
 use GpsLab\Bundle\DomainEvent\Event\Listener\DomainEventPublisher;
 use GpsLab\Bundle\DomainEvent\Service\EventPublisher;
@@ -27,6 +30,22 @@ class DomainEventPublisherTest extends \PHPUnit_Framework_TestCase
      * @var \PHPUnit_Framework_MockObject_MockObject|EventPuller
      */
     private $event_puller;
+
+    /**
+     * @var \PHPUnit_Framework_MockObject_MockObject|EntityManagerInterface
+     */
+    private $em;
+
+    /**
+     * @var OnFlushEventArgs
+     */
+    private $on_flush;
+
+    /**
+     * @var PostFlushEventArgs
+     */
+    private $post_flush;
+
     /**
      * @var DomainEventPublisher
      */
@@ -44,6 +63,9 @@ class DomainEventPublisherTest extends \PHPUnit_Framework_TestCase
             ->disableOriginalConstructor()
             ->getMock()
         ;
+        $this->em = $this->getMock(EntityManagerInterface::class);
+        $this->on_flush = new OnFlushEventArgs($this->em);
+        $this->post_flush = new PostFlushEventArgs($this->em);
 
         $this->publisher = new DomainEventPublisher($this->event_publisher, $this->event_puller, true);
     }
@@ -57,7 +79,7 @@ class DomainEventPublisherTest extends \PHPUnit_Framework_TestCase
     public function testEnabled()
     {
         $publisher = new DomainEventPublisher($this->event_publisher, $this->event_puller, true);
-        $this->assertEquals([Events::preFlush, Events::postFlush], $publisher->getSubscribedEvents());
+        $this->assertEquals([Events::onFlush, Events::postFlush], $publisher->getSubscribedEvents());
     }
 
     public function testPreFlush()
@@ -65,9 +87,10 @@ class DomainEventPublisherTest extends \PHPUnit_Framework_TestCase
         $this->event_puller
             ->expects($this->once())
             ->method('pull')
+            ->with($this->em)
         ;
 
-        $this->publisher->preFlush();
+        $this->publisher->onFlush($this->on_flush);
     }
 
     /**
@@ -104,11 +127,13 @@ class DomainEventPublisherTest extends \PHPUnit_Framework_TestCase
         $this->event_puller
             ->expects($this->at(0))
             ->method('pull')
+            ->with($this->em)
             ->will($this->returnValue($remove_events))
         ;
         $this->event_puller
             ->expects($this->at(1))
             ->method('pull')
+            ->with($this->em)
             ->will($this->returnValue($exist_events))
         ;
 
@@ -118,8 +143,8 @@ class DomainEventPublisherTest extends \PHPUnit_Framework_TestCase
             ->with($expected_events)
         ;
 
-        $this->publisher->preFlush();
-        $this->publisher->postFlush();
+        $this->publisher->onFlush($this->on_flush);
+        $this->publisher->postFlush($this->post_flush);
     }
 
     public function testRecursivePublish()
@@ -146,21 +171,25 @@ class DomainEventPublisherTest extends \PHPUnit_Framework_TestCase
         $this->event_puller
             ->expects($this->at(0))
             ->method('pull')
+            ->with($this->em)
             ->will($this->returnValue($remove_events1))
         ;
         $this->event_puller
             ->expects($this->at(1))
             ->method('pull')
+            ->with($this->em)
             ->will($this->returnValue($exist_events1))
         ;
         $this->event_puller
             ->expects($this->at(2))
             ->method('pull')
+            ->with($this->em)
             ->will($this->returnValue($remove_events2))
         ;
         $this->event_puller
             ->expects($this->at(3))
             ->method('pull')
+            ->with($this->em)
             ->will($this->returnValue($exist_events2))
         ;
 
@@ -175,10 +204,10 @@ class DomainEventPublisherTest extends \PHPUnit_Framework_TestCase
             ->with(array_merge($remove_events2, $exist_events2))
         ;
 
-        $this->publisher->preFlush();
-        $this->publisher->postFlush();
+        $this->publisher->onFlush($this->on_flush);
+        $this->publisher->postFlush($this->post_flush);
         // recursive call
-        $this->publisher->preFlush();
-        $this->publisher->postFlush();
+        $this->publisher->onFlush($this->on_flush);
+        $this->publisher->postFlush($this->post_flush);
     }
 }

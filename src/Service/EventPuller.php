@@ -12,38 +12,28 @@ namespace GpsLab\Bundle\DomainEvent\Service;
 
 use Doctrine\Common\Persistence\Proxy;
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\UnitOfWork;
 use GpsLab\Domain\Event\Aggregator\AggregateEvents;
 use GpsLab\Domain\Event\Event;
 
 class EventPuller
 {
     /**
-     * @var UnitOfWork
-     */
-    private $uow;
-
-    /**
      * @param EntityManagerInterface $em
-     */
-    public function __construct(EntityManagerInterface $em)
-    {
-        $this->uow = $em->getUnitOfWork();
-    }
-
-    /**
+     *
      * @return Event[]
      */
-    public function pull()
+    public function pull(EntityManagerInterface $em)
     {
+        $uow = $em->getUnitOfWork();
+
         $events = [];
-        foreach ($this->uow->getIdentityMap() as $entities) {
+        foreach ($uow->getIdentityMap() as $entities) {
             foreach ($entities as $entity) {
                 $events = array_merge($events, $this->pullFromEntity($entity));
             }
         }
 
-        foreach ($this->uow->getScheduledEntityDeletions() as $entity) {
+        foreach ($uow->getScheduledEntityDeletions() as $entity) {
             $events = array_merge($events, $this->pullFromEntity($entity));
         }
 

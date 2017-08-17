@@ -49,7 +49,7 @@ class EventPullerTest extends \PHPUnit_Framework_TestCase
             ->will($this->returnValue($this->uow))
         ;
 
-        $this->puller = new EventPuller($this->em);
+        $this->puller = new EventPuller();
     }
 
     public function testNoEntities()
@@ -65,7 +65,7 @@ class EventPullerTest extends \PHPUnit_Framework_TestCase
             ->will($this->returnValue([]))
         ;
 
-        $this->assertEquals([], $this->puller->pull());
+        $this->assertEquals([], $this->puller->pull($this->em));
     }
 
     public function testNoEvents()
@@ -123,7 +123,7 @@ class EventPullerTest extends \PHPUnit_Framework_TestCase
             ]))
         ;
 
-        $this->assertEquals([], $this->puller->pull());
+        $this->assertEquals([], $this->puller->pull($this->em));
     }
 
     public function testPull()
@@ -199,6 +199,6 @@ class EventPullerTest extends \PHPUnit_Framework_TestCase
             ]))
         ;
 
-        $this->assertEquals(array_merge($on_remove_events, $events), $this->puller->pull());
+        $this->assertEquals(array_merge($on_remove_events, $events), $this->puller->pull($this->em));
     }
 }
