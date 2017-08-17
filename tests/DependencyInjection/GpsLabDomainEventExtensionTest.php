@@ -26,7 +26,7 @@ class GpsLabDomainEventExtensionTest extends \PHPUnit_Framework_TestCase
      */
     private $extension;
 
-    const CONTAINER_OFFSET = 12;
+    const CONTAINER_OFFSET = 13;
 
     protected function setUp()
     {
@@ -111,7 +111,7 @@ class GpsLabDomainEventExtensionTest extends \PHPUnit_Framework_TestCase
         $publisher
             ->expects($this->once())
             ->method('replaceArgument')
-            ->with(1, $publish_on_flush)
+            ->with(2, $publish_on_flush)
         ;
 
         $this->container
