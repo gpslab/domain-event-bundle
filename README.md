@@ -244,7 +244,7 @@ class SendEmailOnPurchaseOrderCreated implements Subscriber
     public static function subscribedEvents()
     {
         return [
-            PurchaseOrderCreatedEvent::class => 'onPurchaseOrderCreated',
+            PurchaseOrderCreatedEvent::class => ['onPurchaseOrderCreated'],
         ];
     }
 
