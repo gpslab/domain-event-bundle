@@ -223,6 +223,58 @@ services:
             - { name: domain_event.listener, event: PurchaseOrderCreatedEvent }
 ```
 
+Create event subscribers
+------------------------
+
+Create subscriber
+
+```php
+use GpsLab\Domain\Event\Event;
+use GpsLab\Domain\Event\Listener\Subscriber;
+
+class SendEmailOnPurchaseOrderCreated implements Subscriber
+{
+    private $mailer;
+
+    public function __construct(\Swift_Mailer $mailer)
+    {
+        $this->mailer = $mailer;
+    }
+
+    public static function subscribedEvents()
+    {
+        return [
+            PurchaseOrderCreatedEvent::class => 'onPurchaseOrderCreated',
+        ];
+    }
+
+    public function onPurchaseOrderCreated(PurchaseOrderCreatedEvent $event)
+    {
+        $message = $this->mailer
+            ->createMessage()
+            ->setTo('recipient@example.com')
+            ->setBody(sprintf(
+                'Purchase order created at %s for customer #%s',
+                $event->getCreateAt()->format('Y-m-d'),
+                $event->getCustomer()->getId()
+            ));
+
+        $this->mailer->send($message);
+    }
+}
+```
+
+Register event subscriber
+
+```yml
+services:
+    acme.domain.purchase_order.event.created.send_email_subscriber:
+        class: SendEmailOnPurchaseOrderCreated
+        arguments: [ '@mailer' ]
+        tags:
+            - { name: domain_event.subscriber }
+```
+
 Use pull Predis queue
 ---------------------
 
