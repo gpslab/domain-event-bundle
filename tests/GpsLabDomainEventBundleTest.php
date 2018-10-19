@@ -47,6 +47,7 @@ class GpsLabDomainEventBundleTest extends \PHPUnit_Framework_TestCase
             ->expects($this->once())
             ->method('addCompilerPass')
             ->with($this->isInstanceOf(EventListenerPass::class));
+
         $this->bundle->build($container);
     }
 

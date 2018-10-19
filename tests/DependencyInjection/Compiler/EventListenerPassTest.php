@@ -132,7 +132,7 @@ class EventListenerPassTest extends \PHPUnit_Framework_TestCase
         Definition $container_locator,
         Definition $current_locator
     ) {
-        $services = [
+        $listeners = [
             'foo' => [
                 ['event' => 'PurchaseOrderCompletedEvent', 'method' => 'onPurchaseOrderCompleted'],
                 ['event' => 'PurchaseOrderCreated', 'method' => 'onPurchaseOrderCreated'],
@@ -144,49 +144,86 @@ class EventListenerPassTest extends \PHPUnit_Framework_TestCase
                 ['event' => 'PurchaseOrderCreated', 'method' => 'handle'],
             ],
         ];
+        $subscribers = [
+            'foo' => [],
+            'bar' => [],
+            'baz' => [],
+        ];
+
+        $locator_index = 0;
+        $container_index = 0;
 
         $this->container
-            ->expects($this->at(0))
+            ->expects($this->at($container_index++))
             ->method('has')
             ->with('domain_event.locator')
             ->will($this->returnValue(true))
         ;
         $this->container
-            ->expects($this->at(1))
+            ->expects($this->at($container_index++))
             ->method('findDefinition')
             ->with('domain_event.locator')
             ->will($this->returnValue($current_locator))
         ;
         $this->container
-            ->expects($this->at(2))
+            ->expects($this->at($container_index++))
             ->method('findDefinition')
             ->with('domain_event.locator.symfony')
             ->will($this->returnValue($symfony_locator))
         ;
         $this->container
-            ->expects($this->at(3))
+            ->expects($this->at($container_index++))
             ->method('findDefinition')
             ->with('domain_event.locator.container')
             ->will($this->returnValue($container_locator))
         ;
         $this->container
-            ->expects($this->at(4))
+            ->expects($this->at($container_index++))
             ->method('findTaggedServiceIds')
             ->with('domain_event.listener')
-            ->will($this->returnValue($services))
+            ->will($this->returnValue($listeners))
+        ;
+        $this->container
+            ->expects($this->at($container_index++))
+            ->method('findTaggedServiceIds')
+            ->with('domain_event.subscriber')
+            ->will($this->returnValue($subscribers))
         ;
 
-        $i = 0;
-        foreach ($services as $id => $attributes) {
+        foreach ($listeners as $id => $attributes) {
             foreach ($attributes as $attribute) {
                 $method = !empty($attribute['method']) ? $attribute['method'] : '__invoke';
 
                 $current_locator
-                    ->expects($this->at($i++))
+                    ->expects($this->at($locator_index++))
                     ->method('addMethodCall')
                     ->with('registerService', [$attribute['event'], $id, $method])
                 ;
             }
+        }
+
+        foreach ($subscribers as $id => $attributes) {
+            $class_name = $id;
+
+            $subscriber = $this->getMock(Definition::class);
+            $subscriber
+                ->expects($this->once())
+                ->method('getClass')
+                ->will($this->returnValue($class_name))
+            ;
+
+            $this->container
+                ->expects($this->at($container_index++))
+                ->method('findDefinition')
+                ->with($id)
+                ->will($this->returnValue($subscriber))
+            ;
+
+            $current_locator
+                ->expects($this->at($locator_index++))
+                ->method('addMethodCall')
+                ->with('registerSubscriberService', [$id, $class_name])
+            ;
         }
 
         $this->pass->process($this->container);
