@@ -9,6 +9,8 @@
 
 namespace GpsLab\Bundle\DomainEvent\DependencyInjection;
 
+use GpsLab\Domain\Event\Bus\EventBus;
+use GpsLab\Domain\Event\Queue\EventQueue;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Loader;
@@ -33,6 +35,8 @@ class GpsLabDomainEventExtension extends Extension
         $container->setAlias('domain_event.bus', $this->busRealName($config['bus']));
         $container->setAlias('domain_event.queue', $this->queueRealName($config['queue']));
         $container->setAlias('domain_event.locator', $this->locatorRealName($config['locator']));
+        $container->setAlias(EventBus::class, $this->busRealName($config['bus']));
+        $container->setAlias(EventQueue::class, $this->queueRealName($config['queue']));
 
         $container->getDefinition('domain_event.publisher')->replaceArgument(2, $config['publish_on_flush']);
     }
