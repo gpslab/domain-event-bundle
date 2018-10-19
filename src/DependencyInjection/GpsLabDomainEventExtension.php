@@ -10,6 +10,7 @@
 namespace GpsLab\Bundle\DomainEvent\DependencyInjection;
 
 use GpsLab\Domain\Event\Bus\EventBus;
+use GpsLab\Domain\Event\Listener\Subscriber;
 use GpsLab\Domain\Event\Queue\EventQueue;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -39,6 +40,15 @@ class GpsLabDomainEventExtension extends Extension
         $container->setAlias(EventQueue::class, $this->queueRealName($config['queue']));
 
         $container->getDefinition('domain_event.publisher')->replaceArgument(2, $config['publish_on_flush']);
+
+        // subscribers tagged automatically
+        if (method_exists($container, 'registerForAutoconfiguration')) {
+            $container
+                ->registerForAutoconfiguration(Subscriber::class)
+                ->addTag('domain_event.subscriber')
+                ->setAutowired(true)
+            ;
+        }
     }
 
     /**
