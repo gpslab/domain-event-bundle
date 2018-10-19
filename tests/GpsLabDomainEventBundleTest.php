@@ -32,21 +32,6 @@ class GpsLabDomainEventBundleTest extends \PHPUnit_Framework_TestCase
         $this->assertInstanceOf(Bundle::class, $this->bundle);
     }
 
-    public function testBuild()
-    {
-        /* @var $container \PHPUnit_Framework_MockObject_MockObject|ContainerBuilder */
-        $container = $this
-            ->getMockBuilder(ContainerBuilder::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-        $container
-            ->expects($this->once())
-            ->method('addCompilerPass')
-            ->with($this->isInstanceOf(EventListenerPass::class));
-
-        $this->bundle->build($container);
-    }
-
     public function testContainerExtension()
     {
         $this->assertInstanceOf(GpsLabDomainEventExtension::class, $this->bundle->getContainerExtension());
