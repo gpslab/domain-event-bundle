@@ -29,6 +29,8 @@ matrix:
           env: DOCTRINE_VERSION=2.4.*
         - php: 5.5
           env: DOCTRINE_VERSION=2.5.*
+        - php: 7.2
+          env: DOCTRINE_VERSION=2.6.*
         - php: hhvm
           sudo: required
           dist: trusty
