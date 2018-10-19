@@ -10,9 +10,9 @@
 Domain event bundle
 ===================
 
-Bundle to create the domain layer of your **DDD** application.
+Bundle to create the domain layer of your [Domain-driven design (DDD)](https://en.wikipedia.org/wiki/Domain-driven_design) application.
 
-This **Symfony** bundle is a wrapper for [gpslab/domain-event](https://github.com/gpslab/domain-event), look it for more details.
+This [Symfony](https://symfony.com/) bundle is a wrapper for [gpslab/domain-event](https://github.com/gpslab/domain-event), look it for more details.
 
 Installation
 ------------
@@ -25,16 +25,28 @@ composer require gpslab/domain-event-bundle
 
 Add GpsLabDomainEventBundle to your application kernel
 
+**Symfony <3.4**
+
 ```php
 // app/AppKernel.php
 public function registerBundles()
 {
-    return array(
+    return [
         // ...
         new GpsLab\Bundle\DomainEvent\GpsLabDomainEventBundle(),
         // ...
-    );
+    ];
 }
+```
+
+**Symfony >4.0**
+
+```php
+// config/bundles.php
+return [
+    // ...
+    GpsLab\Bundle\DomainEvent\GpsLabDomainEventBundle::class => ['all' => true],
+];
 ```
 
 Configuration
@@ -83,12 +95,12 @@ class PurchaseOrderCreatedEvent implements Event
         $this->create_at = $create_at;
     }
 
-    public function customerId()
+    public function customerId(): CustomerId
     {
         return $this->customer_id;
     }
 
-    public function createAt()
+    public function createAt(): \DateTimeImmutable
     {
         return $this->create_at;
     }
@@ -129,15 +141,15 @@ class SendEmailOnPurchaseOrderCreated
         $this->mailer = $mailer;
     }
 
-    public function onPurchaseOrderCreated(PurchaseOrderCreatedEvent $event)
+    public function onPurchaseOrderCreated(PurchaseOrderCreatedEvent $event): void
     {
         $message = $this->mailer
             ->createMessage()
             ->setTo('recipient@example.com')
             ->setBody(sprintf(
                 'Purchase order created at %s for customer #%s',
-                $event->getCreateAt()->format('Y-m-d'),
-                $event->getCustomer()->getId()
+                $event->createAt()->format('Y-m-d'),
+                $event->customerId()
             ));
 
         $this->mailer->send($message);
@@ -149,8 +161,7 @@ Register event listener
 
 ```yml
 services:
-    acme.domain.purchase_order.event.created.send_email_listener:
-        class: SendEmailOnPurchaseOrderCreated
+    SendEmailOnPurchaseOrderCreated:
         arguments: [ '@mailer' ]
         tags:
             - { name: domain_event.listener, event: PurchaseOrderCreatedEvent, method: onPurchaseOrderCreated }
@@ -159,8 +170,10 @@ services:
 Publish events in listener
 
 ```php
+use GpsLab\Domain\Event\Bus\EventBus;
+
 // get event bus from DI container
-$bus = $this->get('domain_event.bus');
+$bus = $this->get(EventBus::class);
 
 // do what you need to do on your Domain
 $purchase_order = new PurchaseOrder(new CustomerId(1));
@@ -196,15 +209,15 @@ class SendEmailOnPurchaseOrderCreated
         $this->mailer = $mailer;
     }
 
-    public function __invoke(PurchaseOrderCreatedEvent $event)
+    public function __invoke(PurchaseOrderCreatedEvent $event): void
     {
         $message = $this->mailer
             ->createMessage()
             ->setTo('recipient@example.com')
             ->setBody(sprintf(
                 'Purchase order created at %s for customer #%s',
-                $event->getCreateAt()->format('Y-m-d'),
-                $event->getCustomer()->getId()
+                $event->createAt()->format('Y-m-d'),
+                $event->customerId()
             ));
 
         $this->mailer->send($message);
@@ -216,8 +229,7 @@ Register event listener
 
 ```yml
 services:
-    acme.domain.purchase_order.event.created.send_email_listener:
-        class: SendEmailOnPurchaseOrderCreated
+    SendEmailOnPurchaseOrderCreated:
         arguments: [ '@mailer' ]
         tags:
             - { name: domain_event.listener, event: PurchaseOrderCreatedEvent }
@@ -241,22 +253,22 @@ class SendEmailOnPurchaseOrderCreated implements Subscriber
         $this->mailer = $mailer;
     }
 
-    public static function subscribedEvents()
+    public static function subscribedEvents(): array
     {
         return [
             PurchaseOrderCreatedEvent::class => ['onPurchaseOrderCreated'],
         ];
     }
 
-    public function onPurchaseOrderCreated(PurchaseOrderCreatedEvent $event)
+    public function onPurchaseOrderCreated(PurchaseOrderCreatedEvent $event): void
     {
         $message = $this->mailer
             ->createMessage()
             ->setTo('recipient@example.com')
             ->setBody(sprintf(
                 'Purchase order created at %s for customer #%s',
-                $event->getCreateAt()->format('Y-m-d'),
-                $event->getCustomer()->getId()
+                $event->createAt()->format('Y-m-d'),
+                $event->customerId()
             ));
 
         $this->mailer->send($message);
@@ -268,8 +280,7 @@ Register event subscriber
 
 ```yml
 services:
-    acme.domain.purchase_order.event.created.send_email_subscriber:
-        class: SendEmailOnPurchaseOrderCreated
+    SendEmailOnPurchaseOrderCreated:
         arguments: [ '@mailer' ]
         tags:
             - { name: domain_event.subscriber }
@@ -278,7 +289,7 @@ services:
 Use pull Predis queue
 ---------------------
 
-Install Predis with [Composer](http://packagist.org), run:
+Install [Predis](https://github.com/nrk/predis) with [Composer](http://packagist.org), run:
 
 ```sh
 composer require predis/predis
@@ -289,39 +300,44 @@ Register services:
 ```yml
 services:
     # Predis
-    acme.predis:
-        class: Predis\Client
+    Predis\Client:
         arguments: [ '127.0.0.1' ]
 
     # Events serializer for queue
-    acme.domain.event.queue.serializer:
-        class: GpsLab\Domain\Event\Queue\Serializer\SymfonySerializer
+    GpsLab\Domain\Event\Queue\Serializer\SymfonySerializer:
         arguments: [ '@serializer', 'json' ]
 
     # Predis event queue
-    acme.domain.event.queue:
-        class: GpsLab\Domain\Event\Queue\Pull\PredisPullEventQueue
-        arguments: [ '@acme.predis', '@acme.domain.event.queue.serializer', '@logger', 'event_queue_name' ]
+    GpsLab\Domain\Event\Queue\Pull\PredisPullEventQueue:
+        arguments:
+            - '@Predis\Client'
+            - '@GpsLab\Domain\Event\Queue\Serializer\SymfonySerializer'
+            - '@logger'
+            - 'event_queue_name'
 ```
 
 Change config for use custom queue:
 
 ```yml
 gpslab_domain_event:
-    queue: 'acme.domain.event.queue'
+    queue: 'GpsLab\Domain\Event\Queue\Pull\PredisPullEventQueue'
 ```
 
 And now you can use custom queue:
 
 ```php
-$container->get('domain_event.queue')->publish($domain_event);
+use GpsLab\Domain\Event\Queue\EventQueue;
+
+$container->get(EventQueue::class)->publish($domain_event);
 ```
 
 In latter pull events from queue:
 
 ```php
-$queue = $container->get('domain_event.queue');
-$bus = $container->get('domain_event.bus');
+use GpsLab\Domain\Event\Queue\EventQueue;
+
+$queue = $container->get(EventQueue::class);
+$bus = $container->get(EventQueue::class);
 
 while ($event = $queue->pull()) {
     $bus->publish($event);
@@ -331,7 +347,7 @@ while ($event = $queue->pull()) {
 Use Predis subscribe queue
 --------------------------
 
-Install Predis PubSub adapter with [Composer](http://packagist.org), run:
+Install [Predis PubSub](https://github.com/Superbalist/php-pubsub-redis) adapter with [Composer](http://packagist.org), run:
 
 ```sh
 composer require superbalist/php-pubsub-redis
@@ -342,43 +358,47 @@ Register services:
 ```yml
 services:
     # Predis
-    acme.predis:
-        class: Predis\Client
+    Predis\Client:
         arguments: [ '127.0.0.1' ]
 
     # Predis PubSub adapter
-    acme.predis.pubsub:
-        class: Superbalist\PubSub\Redis\RedisPubSubAdapter
-        arguments: [ '@acme.predis' ]
+    Superbalist\PubSub\Redis\RedisPubSubAdapter:
+        arguments: [ '@Predis\Client' ]
 
     # Events serializer for queue
-    acme.domain.event.queue.serializer:
-        class: GpsLab\Domain\Event\Queue\Serializer\SymfonySerializer
+    GpsLab\Domain\Event\Queue\Serializer\SymfonySerializer:
         arguments: [ '@serializer', 'json' ]
 
     # Predis event queue
-    acme.domain.event.queue:
-        class: GpsLab\Domain\Event\Queue\Subscribe\PredisSubscribeEventQueue
-        arguments: [ '@acme.predis.pubsub', '@acme.domain.event.queue.serializer', '@logger', 'event_queue_name' ]
+    GpsLab\Domain\Event\Queue\Subscribe\PredisSubscribeEventQueue:
+        arguments:
+            - '@Superbalist\PubSub\Redis\RedisPubSubAdapter'
+            - '@GpsLab\Domain\Event\Queue\Serializer\SymfonySerializer'
+            - '@logger'
+            - 'event_queue_name'
 ```
 
 Change config for use custom queue:
 
 ```yml
 gpslab_domain_event:
-    queue: 'acme.domain.event.queue'
+    queue: 'GpsLab\Domain\Event\Queue\Subscribe\PredisSubscribeEventQueue'
 ```
 
 And now you can use custom queue:
 
 ```php
-$container->get('domain_event.queue')->publish($domain_event);
+use GpsLab\Domain\Event\Queue\EventQueue;
+
+$container->get(EventQueue::class)->publish($domain_event);
 ```
 
 Subscribe on the queue:
 
 ```php
-$container->get('domain_event.queue')->subscribe(function (Event $event) {
+use GpsLab\Domain\Event\Queue\EventQueue;
+
+$container->get(EventQueue::class)->subscribe(function (Event $event) {
     // do somthing
 });
 ```
@@ -398,11 +418,19 @@ separately from each other.
 services:
     acme.domain.purchase_order.event.queue:
         class: GpsLab\Domain\Event\Queue\Pull\PredisPullEventQueue
-        arguments: [ '@acme.predis', '@acme.domain.event.queue.serializer', '@logger', 'purchase_order_event_queue' ]
+        arguments:
+            - '@Superbalist\PubSub\Redis\RedisPubSubAdapter'
+            - '@GpsLab\Domain\Event\Queue\Serializer\SymfonySerializer'
+            - '@logger'
+            - 'purchase_order_event_queue'
 
     acme.domain.article_comment.event.queue:
         class: GpsLab\Domain\Event\Queue\Pull\PredisPullEventQueue
-        arguments: [ '@acme.predis', '@acme.domain.event.queue.serializer', '@logger', 'article_comment_event_queue' ]
+        arguments:
+            - '@Superbalist\PubSub\Redis\RedisPubSubAdapter'
+            - '@GpsLab\Domain\Event\Queue\Serializer\SymfonySerializer'
+            - '@logger'
+            - 'article_comment_event_queue'
 ```
 
 And now you can use a different queues.
