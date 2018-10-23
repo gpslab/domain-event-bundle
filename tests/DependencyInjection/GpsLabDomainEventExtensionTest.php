@@ -11,6 +11,10 @@
 namespace GpsLab\Bundle\DomainEvent\Tests\DependencyInjection;
 
 use GpsLab\Bundle\DomainEvent\DependencyInjection\GpsLabDomainEventExtension;
+use GpsLab\Domain\Event\Bus\EventBus;
+use GpsLab\Domain\Event\Listener\Subscriber;
+use GpsLab\Domain\Event\Queue\EventQueue;
+use Symfony\Component\DependencyInjection\ChildDefinition;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
 
@@ -135,10 +139,47 @@ class GpsLabDomainEventExtensionTest extends \PHPUnit_Framework_TestCase
         ;
         $this->container
             ->expects($this->at(self::CONTAINER_OFFSET + 3))
+            ->method('setAlias')
+            ->with(EventBus::class, $bus)
+        ;
+        $this->container
+            ->expects($this->at(self::CONTAINER_OFFSET + 4))
+            ->method('setAlias')
+            ->with(EventQueue::class, $queue)
+        ;
+        $this->container
+            ->expects($this->at(self::CONTAINER_OFFSET + 5))
             ->method('getDefinition')
             ->with('domain_event.publisher')
             ->will($this->returnValue($publisher))
         ;
+
+        if (method_exists($this->container, 'registerForAutoconfiguration')) {
+            $child = $this
+                ->getMockBuilder(ChildDefinition::class)
+                ->disableOriginalConstructor()
+                ->getMock()
+            ;
+            $child
+                ->expects($this->once())
+                ->method('addTag')
+                ->with('domain_event.subscriber')
+                ->will($this->returnSelf())
+            ;
+            $child
+                ->expects($this->once())
+                ->method('setAutowired')
+                ->with(true)
+                ->will($this->returnSelf())
+            ;
+
+            $this->container
+                ->expects($this->at(self::CONTAINER_OFFSET + 6))
+                ->method('registerForAutoconfiguration')
+                ->with(Subscriber::class)
+                ->will($this->returnValue($child))
+            ;
+        }
 
         $this->extension->load($config, $this->container);
     }
