@@ -235,8 +235,8 @@ services:
             - { name: domain_event.listener, event: PurchaseOrderCreatedEvent }
 ```
 
-Create event subscribers
-------------------------
+Event subscribers
+-----------------
 
 Create subscriber
 
