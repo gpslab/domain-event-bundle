@@ -49,8 +49,8 @@ before_script:
     - composer install --prefer-dist --no-interaction --no-scripts --no-progress
 
 script:
-    - vendor/phpunit/phpunit/phpunit --coverage-clover build/coverage-clover.xml
+    - vendor/bin/phpunit --coverage-clover build/coverage-clover.xml
 
 after_script:
-    - vendor/scrutinizer/ocular/bin/ocular code-coverage:upload --format=php-clover build/coverage-clover.xml
-    - vendor/satooshi/php-coveralls/bin/coveralls -v -c .coveralls.yml
+    - vendor/bin/ocular code-coverage:upload --format=php-clover build/coverage-clover.xml
+    - vendor/bin/php-coveralls -v -c .coveralls.yml
