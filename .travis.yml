@@ -38,15 +38,8 @@ matrix:
           env: DOCTRINE_VERSION=2.5.*
         - php: 7.2
           env: DOCTRINE_VERSION=2.6.*
-        - php: hhvm
-          sudo: required
-          dist: trusty
-          group: edge
-    allow_failures:
-        - php: hhvm
 
 before_install:
-    - if [ "$TRAVIS_PHP_VERSION" = "hhvm" ]; then echo 'xdebug.enable = on' >> /etc/hhvm/php.ini; fi
     - if [ -n "$GH_TOKEN" ]; then composer config github-oauth.github.com ${GH_TOKEN}; fi;
 
 before_script:
