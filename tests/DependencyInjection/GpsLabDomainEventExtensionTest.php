@@ -14,36 +14,24 @@ use GpsLab\Bundle\DomainEvent\DependencyInjection\GpsLabDomainEventExtension;
 use GpsLab\Domain\Event\Bus\EventBus;
 use GpsLab\Domain\Event\Listener\Subscriber;
 use GpsLab\Domain\Event\Queue\EventQueue;
-use Symfony\Component\DependencyInjection\ChildDefinition;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
-use Symfony\Component\DependencyInjection\Definition;
 
 class GpsLabDomainEventExtensionTest extends \PHPUnit_Framework_TestCase
 {
-    /**
-     * @var \PHPUnit_Framework_MockObject_MockObject|ContainerBuilder
-     */
-    private $container;
-
     /**
      * @var GpsLabDomainEventExtension
      */
     private $extension;
 
-    const CONTAINER_OFFSET = 13;
+    /**
+     * @var ContainerBuilder
+     */
+    private $container;
 
     protected function setUp()
     {
-        if (PHP_VERSION_ID >= 70000) {
-            $this->markTestSkipped(sprintf('Impossible to mock "%s" on PHP 7', ContainerBuilder::class));
-        }
-
-        $this->container = $this
-            ->getMockBuilder(ContainerBuilder::class)
-            ->disableOriginalConstructor()
-            ->getMock()
-        ;
         $this->extension = new GpsLabDomainEventExtension();
+        $this->container = new ContainerBuilder();
     }
 
     /**
@@ -115,73 +103,28 @@ class GpsLabDomainEventExtensionTest extends \PHPUnit_Framework_TestCase
      */
     public function testLoad(array $config, $bus, $queue, $locator, $publish_on_flush)
     {
-        $publisher = $this->getMock(Definition::class);
-        $publisher
-            ->expects($this->once())
-            ->method('replaceArgument')
-            ->with(2, $publish_on_flush)
-        ;
+        $this->extension->load($config, $this->container);
 
-        $this->container
-            ->expects($this->at(self::CONTAINER_OFFSET))
-            ->method('setAlias')
-            ->with('domain_event.bus', $bus)
-        ;
-        $this->container
-            ->expects($this->at(self::CONTAINER_OFFSET + 1))
-            ->method('setAlias')
-            ->with('domain_event.queue', $queue)
-        ;
-        $this->container
-            ->expects($this->at(self::CONTAINER_OFFSET + 2))
-            ->method('setAlias')
-            ->with('domain_event.locator', $locator)
-        ;
-        $this->container
-            ->expects($this->at(self::CONTAINER_OFFSET + 3))
-            ->method('setAlias')
-            ->with(EventBus::class, $bus)
-        ;
-        $this->container
-            ->expects($this->at(self::CONTAINER_OFFSET + 4))
-            ->method('setAlias')
-            ->with(EventQueue::class, $queue)
-        ;
-        $this->container
-            ->expects($this->at(self::CONTAINER_OFFSET + 5))
-            ->method('getDefinition')
-            ->with('domain_event.publisher')
-            ->will($this->returnValue($publisher))
-        ;
+        $this->assertEquals($bus, $this->container->getAlias('domain_event.bus'));
+        $this->assertEquals($queue, $this->container->getAlias('domain_event.queue'));
+        $this->assertEquals($locator, $this->container->getAlias('domain_event.locator'));
+        $this->assertEquals($bus, $this->container->getAlias(EventBus::class));
+        $this->assertEquals($queue, $this->container->getAlias(EventQueue::class));
+
+        $publisher = $this->container->getDefinition('domain_event.publisher');
+        $this->assertEquals($publish_on_flush, $publisher->getArgument(2));
 
         if (method_exists($this->container, 'registerForAutoconfiguration')) {
-            $child = $this
-                ->getMockBuilder(ChildDefinition::class)
-                ->disableOriginalConstructor()
-                ->getMock()
-            ;
-            $child
-                ->expects($this->once())
-                ->method('addTag')
-                ->with('domain_event.subscriber')
-                ->will($this->returnSelf())
-            ;
-            $child
-                ->expects($this->once())
-                ->method('setAutowired')
-                ->with(true)
-                ->will($this->returnSelf())
-            ;
-
-            $this->container
-                ->expects($this->at(self::CONTAINER_OFFSET + 6))
-                ->method('registerForAutoconfiguration')
-                ->with(Subscriber::class)
-                ->will($this->returnValue($child))
-            ;
+            $has_subscriber = false;
+            foreach ($this->container->getAutoconfiguredInstanceof() as $key => $definition) {
+                if ($key === Subscriber::class) {
+                    $has_subscriber = true;
+                    $this->assertTrue($definition->hasTag('domain_event.subscriber'));
+                    $this->assertTrue($definition->isAutowired());
+                }
+            }
+            $this->assertTrue($has_subscriber);
         }
-
-        $this->extension->load($config, $this->container);
     }
 
     public function testAlias()
