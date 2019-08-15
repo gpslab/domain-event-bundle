@@ -22,9 +22,15 @@ class GpsLabDomainEventBundleTest extends \PHPUnit_Framework_TestCase
      */
     private $bundle;
 
+    /**
+     * @var ContainerBuilder
+     */
+    private $container;
+
     protected function setUp()
     {
         $this->bundle = new GpsLabDomainEventBundle();
+        $this->container = new ContainerBuilder();
     }
 
     public function testCorrectBundle()
@@ -34,21 +40,13 @@ class GpsLabDomainEventBundleTest extends \PHPUnit_Framework_TestCase
 
     public function testBuild()
     {
-        if (PHP_VERSION_ID >= 70000) {
-            $this->markTestSkipped(sprintf('Impossible to mock "%s" on PHP 7', ContainerBuilder::class));
+        $this->bundle->build($this->container);
+
+        $has_event_listener_pass = false;
+        foreach ($this->container->getCompiler()->getPassConfig()->getBeforeOptimizationPasses() as $pass) {
+            $has_event_listener_pass = $pass instanceof EventListenerPass ?: $has_event_listener_pass;
         }
-
-        /* @var $container \PHPUnit_Framework_MockObject_MockObject|ContainerBuilder */
-        $container = $this
-            ->getMockBuilder(ContainerBuilder::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-        $container
-            ->expects($this->once())
-            ->method('addCompilerPass')
-            ->with($this->isInstanceOf(EventListenerPass::class));
-
-        $this->bundle->build($container);
+        $this->assertTrue($has_event_listener_pass);
     }
 
     public function testContainerExtension()
