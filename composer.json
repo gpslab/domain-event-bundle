@@ -1,7 +1,7 @@
 {
     "name": "gpslab/domain-event-bundle",
     "license": "MIT",
-    "type": "library",
+    "type": "symfony-bundle",
     "homepage": "https://github.com/gpslab/domain-event-bundle",
     "description": "Bundle to create the domain layer of your DDD application",
     "autoload": {
