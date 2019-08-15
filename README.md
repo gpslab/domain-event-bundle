@@ -20,33 +20,7 @@ Installation
 Pretty simple with [Composer](http://packagist.org), run:
 
 ```sh
-composer require gpslab/domain-event-bundle
-```
-
-Add GpsLabDomainEventBundle to your application kernel
-
-**Symfony <3.4**
-
-```php
-// app/AppKernel.php
-public function registerBundles()
-{
-    return [
-        // ...
-        new GpsLab\Bundle\DomainEvent\GpsLabDomainEventBundle(),
-        // ...
-    ];
-}
-```
-
-**Symfony >4.0**
-
-```php
-// config/bundles.php
-return [
-    // ...
-    GpsLab\Bundle\DomainEvent\GpsLabDomainEventBundle::class => ['all' => true],
-];
+composer req gpslab/domain-event-bundle
 ```
 
 Configuration
