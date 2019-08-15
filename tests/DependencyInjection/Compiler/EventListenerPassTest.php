@@ -104,6 +104,10 @@ class EventListenerPassTest extends \PHPUnit_Framework_TestCase
      */
     public function locators()
     {
+        if (PHP_VERSION_ID >= 70000) {
+            $this->markTestSkipped(sprintf('Impossible to mock "%s" on PHP 7', Definition::class));
+        }
+
         $locator = $this->getMock(Definition::class);
 
         return [
