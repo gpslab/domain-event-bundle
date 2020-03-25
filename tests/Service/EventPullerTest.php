@@ -90,10 +90,10 @@ class EventPullerTest extends TestCase
     /**
      * @dataProvider events
      *
-     * @param array $deletions_events
-     * @param array $insertions_events
-     * @param array $updates_events
-     * @param array $map_events
+     * @param \PHPUnit_Framework_MockObject_MockObject[] $deletions_events
+     * @param \PHPUnit_Framework_MockObject_MockObject[] $insertions_events
+     * @param \PHPUnit_Framework_MockObject_MockObject[] $updates_events
+     * @param \PHPUnit_Framework_MockObject_MockObject[] $map_events
      */
     public function testPull(
         array $deletions_events,
@@ -181,7 +181,7 @@ class EventPullerTest extends TestCase
             ->method('pullEvents')
             ->will($this->returnValue(array_slice($events, 0, $slice)))
         ;
-        $aggregator2 = $this->getMockBuilder(AggregateEvents::class);
+        $aggregator2 = $this->getMockBuilder(AggregateEvents::class)->getMock();
         $aggregator2
             ->expects($this->once())
             ->method('pullEvents')
