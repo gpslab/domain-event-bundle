@@ -14,9 +14,10 @@ use GpsLab\Bundle\DomainEvent\DependencyInjection\GpsLabDomainEventExtension;
 use GpsLab\Domain\Event\Bus\EventBus;
 use GpsLab\Domain\Event\Listener\Subscriber;
 use GpsLab\Domain\Event\Queue\EventQueue;
+use PHPUnit\Framework\TestCase;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 
-class GpsLabDomainEventExtensionTest extends \PHPUnit_Framework_TestCase
+class GpsLabDomainEventExtensionTest extends TestCase
 {
     /**
      * @var GpsLabDomainEventExtension
