@@ -11,10 +11,11 @@
 namespace GpsLab\Bundle\DomainEvent\Tests\DependencyInjection\Compiler;
 
 use GpsLab\Bundle\DomainEvent\DependencyInjection\Compiler\EventListenerPass;
+use PHPUnit\Framework\TestCase;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
 
-class EventListenerPassTest extends \PHPUnit_Framework_TestCase
+class EventListenerPassTest extends TestCase
 {
     /**
      * @var \PHPUnit_Framework_MockObject_MockObject|ContainerBuilder

@@ -15,8 +15,9 @@ use Doctrine\ORM\UnitOfWork;
 use GpsLab\Bundle\DomainEvent\Service\EventPuller;
 use GpsLab\Domain\Event\Aggregator\AggregateEvents;
 use GpsLab\Domain\Event\Event;
+use PHPUnit\Framework\TestCase;
 
-class EventPullerTest extends \PHPUnit_Framework_TestCase
+class EventPullerTest extends TestCase
 {
     /**
      * @var \PHPUnit_Framework_MockObject_MockObject|UnitOfWork

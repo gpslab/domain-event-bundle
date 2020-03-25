@@ -19,8 +19,9 @@ use GpsLab\Bundle\DomainEvent\Event\Listener\DomainEventPublisher;
 use GpsLab\Bundle\DomainEvent\Service\EventPuller;
 use GpsLab\Domain\Event\Bus\EventBus;
 use GpsLab\Domain\Event\Event;
+use PHPUnit\Framework\TestCase;
 
-class DomainEventPublisherTest extends \PHPUnit_Framework_TestCase
+class DomainEventPublisherTest extends TestCase
 {
     /**
      * @var \PHPUnit_Framework_MockObject_MockObject|EventBus
