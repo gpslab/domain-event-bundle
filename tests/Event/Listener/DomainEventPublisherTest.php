@@ -60,9 +60,9 @@ class DomainEventPublisherTest extends TestCase
 
     protected function setUp()
     {
-        $this->bus = $this->getMock(EventBus::class);
-        $this->puller = $this->getMock(EventPuller::class);
-        $this->em = $this->getMock(EntityManagerInterface::class);
+        $this->bus = $this->getMockBuilder(EventBus::class)->getMock();
+        $this->puller = $this->getMockBuilder(EventPuller::class)->getMock();
+        $this->em = $this->getMockBuilder(EntityManagerInterface::class)->getMock();
 
         $this->on_flush = $this
             ->getMockBuilder(OnFlushEventArgs::class)
@@ -130,15 +130,15 @@ class DomainEventPublisherTest extends TestCase
     public function events()
     {
         $events1 = [
-            $this->getMock(Event::class),
-            $this->getMock(Event::class),
-            $this->getMock(Event::class),
+            $this->getMockBuilder(Event::class)->getMock(),
+            $this->getMockBuilder(Event::class)->getMock(),
+            $this->getMockBuilder(Event::class)->getMock(),
         ];
         $events2 = [
-            $this->getMock(Event::class),
-            $this->getMock(Event::class),
-            $this->getMock(Event::class),
-            $this->getMock(Event::class),
+            $this->getMockBuilder(Event::class)->getMock(),
+            $this->getMockBuilder(Event::class)->getMock(),
+            $this->getMockBuilder(Event::class)->getMock(),
+            $this->getMockBuilder(Event::class)->getMock(),
         ];
 
         return [
@@ -207,22 +207,22 @@ class DomainEventPublisherTest extends TestCase
     public function testRecursivePublish()
     {
         $remove_events1 = [
-            $this->getMock(Event::class),
-            $this->getMock(Event::class),
+            $this->getMockBuilder(Event::class)->getMock(),
+            $this->getMockBuilder(Event::class)->getMock(),
         ];
         $remove_events2 = [
-            $this->getMock(Event::class),
-            $this->getMock(Event::class),
-            $this->getMock(Event::class),
+            $this->getMockBuilder(Event::class)->getMock(),
+            $this->getMockBuilder(Event::class)->getMock(),
+            $this->getMockBuilder(Event::class)->getMock(),
         ];
         $exist_events1 = [
-            $this->getMock(Event::class),
-            $this->getMock(Event::class),
+            $this->getMockBuilder(Event::class)->getMock(),
+            $this->getMockBuilder(Event::class)->getMock(),
         ];
         $exist_events2 = [
-            $this->getMock(Event::class),
-            $this->getMock(Event::class),
-            $this->getMock(Event::class),
+            $this->getMockBuilder(Event::class)->getMock(),
+            $this->getMockBuilder(Event::class)->getMock(),
+            $this->getMockBuilder(Event::class)->getMock(),
         ];
 
         $this->em

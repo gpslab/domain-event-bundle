@@ -46,26 +46,26 @@ class EventPullerTest extends TestCase
     public function events()
     {
         $events1 = [
-            $this->getMock(Event::class),
-            $this->getMock(Event::class),
-            $this->getMock(Event::class),
-            $this->getMock(Event::class),
-            $this->getMock(Event::class),
+            $this->getMockBuilder(Event::class)->getMock(),
+            $this->getMockBuilder(Event::class)->getMock(),
+            $this->getMockBuilder(Event::class)->getMock(),
+            $this->getMockBuilder(Event::class)->getMock(),
+            $this->getMockBuilder(Event::class)->getMock(),
         ];
         $events2 = [
-            $this->getMock(Event::class),
-            $this->getMock(Event::class),
-            $this->getMock(Event::class),
-            $this->getMock(Event::class),
+            $this->getMockBuilder(Event::class)->getMock(),
+            $this->getMockBuilder(Event::class)->getMock(),
+            $this->getMockBuilder(Event::class)->getMock(),
+            $this->getMockBuilder(Event::class)->getMock(),
         ];
         $events3 = [
-            $this->getMock(Event::class),
-            $this->getMock(Event::class),
-            $this->getMock(Event::class),
+            $this->getMockBuilder(Event::class)->getMock(),
+            $this->getMockBuilder(Event::class)->getMock(),
+            $this->getMockBuilder(Event::class)->getMock(),
         ];
         $events4 = [
-            $this->getMock(Event::class),
-            $this->getMock(Event::class),
+            $this->getMockBuilder(Event::class)->getMock(),
+            $this->getMockBuilder(Event::class)->getMock(),
         ];
 
         return [
@@ -103,12 +103,12 @@ class EventPullerTest extends TestCase
     ) {
         if ($map_events) {
             $slice = round(count($map_events) / 2);
-            $aggregator1 = $this->getMock(AggregateEvents::class);
+            $aggregator1 = $this->getMockBuilder(AggregateEvents::class)->getMock();
             $aggregator1
                 ->expects($this->once())
                 ->method('pullEvents')
                 ->will($this->returnValue(array_slice($map_events, 0, $slice)));
-            $aggregator2 = $this->getMock(AggregateEvents::class);
+            $aggregator2 = $this->getMockBuilder(AggregateEvents::class)->getMock();
             $aggregator2
                 ->expects($this->once())
                 ->method('pullEvents')
@@ -116,7 +116,7 @@ class EventPullerTest extends TestCase
 
             $map = [
                 [
-                    $this->getMock(Proxy::class),
+                    $this->getMockBuilder(Proxy::class)->getMock(),
                     $aggregator1,
                 ],
                 [
@@ -125,7 +125,7 @@ class EventPullerTest extends TestCase
                 ],
                 [
                     new \stdClass(),
-                    $this->getMock(Proxy::class),
+                    $this->getMockBuilder(Proxy::class)->getMock(),
                 ],
             ];
         } else {
@@ -175,13 +175,13 @@ class EventPullerTest extends TestCase
         }
 
         $slice = round(count($events) / 2);
-        $aggregator1 = $this->getMock(AggregateEvents::class);
+        $aggregator1 = $this->getMockBuilder(AggregateEvents::class)->getMock();
         $aggregator1
             ->expects($this->once())
             ->method('pullEvents')
             ->will($this->returnValue(array_slice($events, 0, $slice)))
         ;
-        $aggregator2 = $this->getMock(AggregateEvents::class);
+        $aggregator2 = $this->getMockBuilder(AggregateEvents::class);
         $aggregator2
             ->expects($this->once())
             ->method('pullEvents')
@@ -189,7 +189,7 @@ class EventPullerTest extends TestCase
         ;
 
         return [
-            $this->getMock(Proxy::class),
+            $this->getMockBuilder(Proxy::class)->getMock(),
             new \stdClass(),
             $aggregator1,
             $aggregator2,
