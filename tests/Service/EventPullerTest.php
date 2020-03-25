@@ -15,8 +15,9 @@ use Doctrine\ORM\UnitOfWork;
 use GpsLab\Bundle\DomainEvent\Service\EventPuller;
 use GpsLab\Domain\Event\Aggregator\AggregateEvents;
 use GpsLab\Domain\Event\Event;
+use PHPUnit\Framework\TestCase;
 
-class EventPullerTest extends \PHPUnit_Framework_TestCase
+class EventPullerTest extends TestCase
 {
     /**
      * @var \PHPUnit_Framework_MockObject_MockObject|UnitOfWork
@@ -45,26 +46,26 @@ class EventPullerTest extends \PHPUnit_Framework_TestCase
     public function events()
     {
         $events1 = [
-            $this->getMock(Event::class),
-            $this->getMock(Event::class),
-            $this->getMock(Event::class),
-            $this->getMock(Event::class),
-            $this->getMock(Event::class),
+            $this->getMockBuilder(Event::class)->getMock(),
+            $this->getMockBuilder(Event::class)->getMock(),
+            $this->getMockBuilder(Event::class)->getMock(),
+            $this->getMockBuilder(Event::class)->getMock(),
+            $this->getMockBuilder(Event::class)->getMock(),
         ];
         $events2 = [
-            $this->getMock(Event::class),
-            $this->getMock(Event::class),
-            $this->getMock(Event::class),
-            $this->getMock(Event::class),
+            $this->getMockBuilder(Event::class)->getMock(),
+            $this->getMockBuilder(Event::class)->getMock(),
+            $this->getMockBuilder(Event::class)->getMock(),
+            $this->getMockBuilder(Event::class)->getMock(),
         ];
         $events3 = [
-            $this->getMock(Event::class),
-            $this->getMock(Event::class),
-            $this->getMock(Event::class),
+            $this->getMockBuilder(Event::class)->getMock(),
+            $this->getMockBuilder(Event::class)->getMock(),
+            $this->getMockBuilder(Event::class)->getMock(),
         ];
         $events4 = [
-            $this->getMock(Event::class),
-            $this->getMock(Event::class),
+            $this->getMockBuilder(Event::class)->getMock(),
+            $this->getMockBuilder(Event::class)->getMock(),
         ];
 
         return [
@@ -89,10 +90,10 @@ class EventPullerTest extends \PHPUnit_Framework_TestCase
     /**
      * @dataProvider events
      *
-     * @param array $deletions_events
-     * @param array $insertions_events
-     * @param array $updates_events
-     * @param array $map_events
+     * @param \PHPUnit_Framework_MockObject_MockObject[] $deletions_events
+     * @param \PHPUnit_Framework_MockObject_MockObject[] $insertions_events
+     * @param \PHPUnit_Framework_MockObject_MockObject[] $updates_events
+     * @param \PHPUnit_Framework_MockObject_MockObject[] $map_events
      */
     public function testPull(
         array $deletions_events,
@@ -102,12 +103,12 @@ class EventPullerTest extends \PHPUnit_Framework_TestCase
     ) {
         if ($map_events) {
             $slice = round(count($map_events) / 2);
-            $aggregator1 = $this->getMock(AggregateEvents::class);
+            $aggregator1 = $this->getMockBuilder(AggregateEvents::class)->getMock();
             $aggregator1
                 ->expects($this->once())
                 ->method('pullEvents')
                 ->will($this->returnValue(array_slice($map_events, 0, $slice)));
-            $aggregator2 = $this->getMock(AggregateEvents::class);
+            $aggregator2 = $this->getMockBuilder(AggregateEvents::class)->getMock();
             $aggregator2
                 ->expects($this->once())
                 ->method('pullEvents')
@@ -115,7 +116,7 @@ class EventPullerTest extends \PHPUnit_Framework_TestCase
 
             $map = [
                 [
-                    $this->getMock(Proxy::class),
+                    $this->getMockBuilder(Proxy::class)->getMock(),
                     $aggregator1,
                 ],
                 [
@@ -124,7 +125,7 @@ class EventPullerTest extends \PHPUnit_Framework_TestCase
                 ],
                 [
                     new \stdClass(),
-                    $this->getMock(Proxy::class),
+                    $this->getMockBuilder(Proxy::class)->getMock(),
                 ],
             ];
         } else {
@@ -174,13 +175,13 @@ class EventPullerTest extends \PHPUnit_Framework_TestCase
         }
 
         $slice = round(count($events) / 2);
-        $aggregator1 = $this->getMock(AggregateEvents::class);
+        $aggregator1 = $this->getMockBuilder(AggregateEvents::class)->getMock();
         $aggregator1
             ->expects($this->once())
             ->method('pullEvents')
             ->will($this->returnValue(array_slice($events, 0, $slice)))
         ;
-        $aggregator2 = $this->getMock(AggregateEvents::class);
+        $aggregator2 = $this->getMockBuilder(AggregateEvents::class)->getMock();
         $aggregator2
             ->expects($this->once())
             ->method('pullEvents')
@@ -188,7 +189,7 @@ class EventPullerTest extends \PHPUnit_Framework_TestCase
         ;
 
         return [
-            $this->getMock(Proxy::class),
+            $this->getMockBuilder(Proxy::class)->getMock(),
             new \stdClass(),
             $aggregator1,
             $aggregator2,

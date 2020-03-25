@@ -11,11 +11,12 @@
 namespace GpsLab\Bundle\DomainEvent\Tests\DependencyInjection;
 
 use GpsLab\Bundle\DomainEvent\DependencyInjection\Configuration;
+use PHPUnit\Framework\TestCase;
 use Symfony\Component\Config\Definition\ArrayNode;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ScalarNode;
 
-class ConfigurationTest extends \PHPUnit_Framework_TestCase
+class ConfigurationTest extends TestCase
 {
     /**
      * @var Configuration

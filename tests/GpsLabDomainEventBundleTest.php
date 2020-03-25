@@ -12,10 +12,11 @@ namespace GpsLab\Bundle\DomainEvent\Tests;
 use GpsLab\Bundle\DomainEvent\DependencyInjection\Compiler\EventListenerPass;
 use GpsLab\Bundle\DomainEvent\DependencyInjection\GpsLabDomainEventExtension;
 use GpsLab\Bundle\DomainEvent\GpsLabDomainEventBundle;
+use PHPUnit\Framework\TestCase;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\HttpKernel\Bundle\Bundle;
 
-class GpsLabDomainEventBundleTest extends \PHPUnit_Framework_TestCase
+class GpsLabDomainEventBundleTest extends TestCase
 {
     /**
      * @var GpsLabDomainEventBundle
