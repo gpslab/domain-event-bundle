@@ -4,7 +4,7 @@ on: [push, pull_request ]
 
 jobs:
     test:
-        name: PHP ${{ matrix.php-version }} + Symfony ${{ matrix.symfony }} + Doctrine ORM ${{ matrix.doctrine }}
+        name: PHP ${{ matrix.php }} + Symfony ${{ matrix.symfony }} + Doctrine ORM ${{ matrix.doctrine }}
         runs-on: ubuntu-latest
         continue-on-error: false
 
@@ -33,17 +33,17 @@ jobs:
                       doctrine: '2.4.*'
                       phpunit: '6.5.*'
                     - php: '7.3'
-                      symfony: '2.8.*'
-                      doctrine: '2.4.*'
-                      phpunit: '6.5.*'
-                    - php: '7.4'
-                      symfony: '2.8.*'
-                      doctrine: '2.4.*'
+                      symfony: '3.4.*'
+                      doctrine: '2.6.*'
                       phpunit: '6.5.*'
                     - php: '7.4'
                       symfony: '3.4.*'
                       doctrine: '2.6.*'
                       phpunit: '6.5.*'
+                    - php: '5.5'
+                      symfony: '2.8.*'
+                      doctrine: '2.5.*'
+                      phpunit: '4.8.*'
                     - php: '7.4'
                       symfony: '4.4.*'
                       doctrine: '2.6.*'
@@ -103,7 +103,7 @@ jobs:
               env:
                 COVERALLS_REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
                 COVERALLS_PARALLEL: true
-                COVERALLS_FLAG_NAME: 'PHP ${{ matrix.php-version }} + Symfony ${{ matrix.symfony }} + Doctrine ORM ${{ matrix.doctrine }}'
+                COVERALLS_FLAG_NAME: 'PHP ${{ matrix.php }} + Symfony ${{ matrix.symfony }} + Doctrine ORM ${{ matrix.doctrine }}'
               run: |
                 composer global require php-coveralls/php-coveralls
                 php-coveralls --coverage_clover=build/coverage-clover.xml -v -c .coveralls.yml
