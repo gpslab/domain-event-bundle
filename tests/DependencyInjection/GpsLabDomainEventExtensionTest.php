@@ -3,9 +3,8 @@
 /**
  * GpsLab component.
  *
- * @author    Peter Gribanov <info@peter-gribanov.ru>
- * @copyright Copyright (c) 2011, Peter Gribanov
- * @license   http://opensource.org/licenses/MIT
+ * @author  Peter Gribanov <info@peter-gribanov.ru>
+ * @license http://opensource.org/licenses/MIT
  */
 
 namespace GpsLab\Bundle\DomainEvent\Tests\DependencyInjection;
@@ -96,7 +95,7 @@ class GpsLabDomainEventExtensionTest extends TestCase
     /**
      * @dataProvider config
      *
-     * @param array $config
+     * @param array  $config
      * @param string $bus
      * @param string $queue
      * @param string $locator
