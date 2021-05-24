@@ -4,7 +4,7 @@ on: [push, pull_request ]
 
 jobs:
     test:
-        name: PHP ${{ matrix.php-version }} + Symfony ${{ matrix.symfony }} + Doctrine ORM ${{ matrix.doctrine }}
+        name: PHP ${{ matrix.php }} + Symfony ${{ matrix.symfony }} + Doctrine ORM ${{ matrix.doctrine }}
         runs-on: ubuntu-latest
         continue-on-error: false
 
@@ -103,7 +103,7 @@ jobs:
               env:
                 COVERALLS_REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
                 COVERALLS_PARALLEL: true
-                COVERALLS_FLAG_NAME: 'PHP ${{ matrix.php-version }} + Symfony ${{ matrix.symfony }} + Doctrine ORM ${{ matrix.doctrine }}'
+                COVERALLS_FLAG_NAME: 'PHP ${{ matrix.php }} + Symfony ${{ matrix.symfony }} + Doctrine ORM ${{ matrix.doctrine }}'
               run: |
                 composer global require php-coveralls/php-coveralls
                 php-coveralls --coverage_clover=build/coverage-clover.xml -v -c .coveralls.yml
