@@ -21,10 +21,11 @@ jobs:
 
             - name: Install variant
               run: |
+                  composer require phpunit/phpunit:"6.5.*" --no-update
                   composer require phpstan/phpstan:"0.12.*" --no-update
                   composer require phpstan/phpstan-phpunit:"0.12.*" --no-update
 
-            - name: Install Composer dependencies (highest)
+            - name: "Install Composer dependencies (highest)"
               uses: "ramsey/composer-install@v1"
               with:
                   dependency-versions: "highest"
@@ -49,7 +50,7 @@ jobs:
                   coverage: none
                   tools: composer:v2
 
-            - name: Install Composer dependencies (highest)
+            - name: "Install Composer dependencies (highest)"
               uses: "ramsey/composer-install@v1"
               with:
                   dependency-versions: "highest"
