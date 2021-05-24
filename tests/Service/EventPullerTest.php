@@ -9,7 +9,8 @@
 
 namespace GpsLab\Bundle\DomainEvent\Tests\Service;
 
-use Doctrine\Common\Persistence\Proxy;
+use Doctrine\Common\Persistence\Proxy as CommonProxy;
+use Doctrine\Persistence\Proxy;
 use Doctrine\ORM\UnitOfWork;
 use GpsLab\Bundle\DomainEvent\Service\EventPuller;
 use GpsLab\Domain\Event\Aggregator\AggregateEvents;
@@ -115,7 +116,7 @@ class EventPullerTest extends TestCase
 
             $map = [
                 [
-                    $this->getMockBuilder(Proxy::class)->getMock(),
+                    $this->getProxyMock(),
                     $aggregator1,
                 ],
                 [
@@ -124,7 +125,7 @@ class EventPullerTest extends TestCase
                 ],
                 [
                     new \stdClass(),
-                    $this->getMockBuilder(Proxy::class)->getMock(),
+                    $this->getProxyMock(),
                 ],
             ];
         } else {
@@ -188,10 +189,22 @@ class EventPullerTest extends TestCase
         ;
 
         return [
-            $this->getMockBuilder(Proxy::class)->getMock(),
+            $this->getProxyMock(),
             new \stdClass(),
             $aggregator1,
             $aggregator2,
         ];
+    }
+
+    /**
+     * @return CommonProxy|Proxy|\PHPUnit_Framework_MockObject_MockObject
+     */
+    private function getProxyMock()
+    {
+        if (class_exists(CommonProxy::class)) {
+            return $this->getMockBuilder(CommonProxy::class)->getMock();
+        }
+
+        return $this->getMockBuilder(Proxy::class)->getMock();
     }
 }
