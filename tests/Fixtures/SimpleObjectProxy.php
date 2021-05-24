@@ -13,7 +13,7 @@ namespace GpsLab\Bundle\DomainEvent\Tests\Fixtures;
 use Doctrine\Common\Persistence\Proxy as CommonProxy;
 use Doctrine\Persistence\Proxy;
 
-if (class_exists(CommonProxy::class)) {
+if (interface_exists(CommonProxy::class)) {
     class SimpleObjectProxy extends SimpleObject implements CommonProxy
     {
         /**
