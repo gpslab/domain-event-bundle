@@ -50,11 +50,14 @@ class EventPuller
         foreach ($entities as $entity) {
             // ignore Doctrine not initialized proxy classes
             // proxy class can't have a domain events
-            if ((
-                    (!$entity instanceof CommonProxy && !$entity instanceof Proxy) || $entity->__isInitialized()
-                ) &&
-                $entity instanceof AggregateEvents
+            if (
+                ($entity instanceof Proxy && !$entity->__isInitialized()) ||
+                ($entity instanceof CommonProxy && !$entity->__isInitialized())
             ) {
+                continue;
+            }
+
+            if ($entity instanceof AggregateEvents) {
                 $events = array_merge($events, $entity->pullEvents());
             }
         }
