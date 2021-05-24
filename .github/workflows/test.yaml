@@ -4,52 +4,99 @@ on: [push, pull_request ]
 
 jobs:
     test:
-        name: PHP ${{ matrix.php-version }} + ${{ matrix.dependencies }} + ${{ matrix.variant }}
+        name: PHP ${{ matrix.php-version }} + Symfony ${{ matrix.symfony }} + Doctrine ORM ${{ matrix.doctrine }}
         runs-on: ubuntu-latest
-        continue-on-error: ${{ matrix.experimental }}
+        continue-on-error: false
 
         strategy:
             fail-fast: false
             matrix:
-                dependencies:
-#                    - lowest
-                    - highest
-                php:
-                    - '5.5'
-                    - '5.6'
-                    - '7.0'
-                    - '7.1'
-                    - '7.2'
-                    - '7.3'
-                    - '7.4'
-                experimental: [false]
-                variant: [normal]
-#                include:
+                include:
+                    - php: '5.5'
+                      symfony: '2.3.*'
+                      doctrine: '2.4.*'
+                      phpunit: '4.8.*'
+                    - php: '5.6'
+                      symfony: '2.3.*'
+                      doctrine: '2.4.*'
+                      phpunit: '4.8.*'
+                    - php: '7.0'
+                      symfony: '2.3.*'
+                      doctrine: '2.4.*'
+                      phpunit: '4.8.*'
+                    - php: '7.1'
+                      symfony: '2.3.*'
+                      doctrine: '2.4.*'
+                      phpunit: '6.5.*'
+                    - php: '7.2'
+                      symfony: '2.3.*'
+                      doctrine: '2.4.*'
+                      phpunit: '6.5.*'
+                    - php: '7.3'
+                      symfony: '2.3.*'
+                      doctrine: '2.4.*'
+                      phpunit: '6.5.*'
+                    - php: '7.4'
+                      symfony: '2.3.*'
+                      doctrine: '2.4.*'
+                      phpunit: '6.5.*'
+                    - php: '7.4'
+                      symfony: '3.4.*'
+                      doctrine: '2.4.*'
+                      phpunit: '6.5.*'
+                    - php: '7.4'
+                      symfony: '4.4.*'
+                      doctrine: '2.4.*'
+                      phpunit: '6.5.*'
+                    - php: '7.4'
+                      symfony: '5.*'
+                      doctrine: '2.4.*'
+                      phpunit: '6.5.*'
+                    - php: '7.4'
+                      symfony: '4.4.*'
+                      doctrine: '2.5.*'
+                      phpunit: '6.5.*'
+                    - php: '7.4'
+                      symfony: '4.4.*'
+                      doctrine: '2.6.*'
+                      phpunit: '6.5.*'
+                    - php: '7.4'
+                      symfony: '4.4.*'
+                      doctrine: '2.7.*'
+                      phpunit: '6.5.*'
+                    - php: '7.4'
+                      symfony: '4.4.*'
+                      doctrine: '2.8.*'
+                      phpunit: '6.5.*'
 #                    # require PHPUnit >= 8.5.12
 #                    - php: '8.0'
-#                      dependencies: highest
-#                      variant: normal
-#                      experimental: true
+#                      symfony: '5.*'
+#                      doctrine: '2.*'
 
         steps:
             - name: Checkout
               uses: actions/checkout@v2
 
-            - name: Install PHP with extensions
+            - name: Install PHP
               uses: shivammathur/setup-php@v2
               with:
                   php-version: ${{ matrix.php }}
                   coverage: xdebug
                   tools: composer:v2
 
-            - name: Install variant
-              if: matrix.variant != 'normal'
-              run: composer require ${{ matrix.variant }} --no-update
+            - name: Install Symfony
+              run: composer require symfony/symfony:"${{ matrix.symfony }}" --no-update
 
-            - name: "Install Composer dependencies (${{ matrix.dependencies }})"
+            - name: Install Doctrine
+              run: composer require doctrine/orm:"${{ matrix.symfony }}" --no-update
+
+            - name: Install PHPUnit
+              run: composer require phpunit/phpunit:"${{ matrix.phpunit }}" --no-update
+
+            - name: "Install Composer dependencies (highest)"
               uses: "ramsey/composer-install@v1"
               with:
-                  dependency-versions: "${{ matrix.dependencies }}"
+                  dependency-versions: "highest"
                   composer-options: "--prefer-dist --prefer-stable"
 
             - name: Run Tests
@@ -64,7 +111,7 @@ jobs:
               env:
                 COVERALLS_REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
                 COVERALLS_PARALLEL: true
-                COVERALLS_FLAG_NAME: 'PHP ${{ matrix.php }} + ${{ matrix.symfony }}'
+                COVERALLS_FLAG_NAME: 'PHP ${{ matrix.php-version }} + Symfony ${{ matrix.symfony }} + Doctrine ORM ${{ matrix.doctrine }}'
               run: |
                 composer global require php-coveralls/php-coveralls
                 php-coveralls --coverage_clover=build/coverage-clover.xml -v -c .coveralls.yml
