@@ -9,9 +9,10 @@
 
 namespace GpsLab\Bundle\DomainEvent\Tests\Service;
 
-use Doctrine\Common\Persistence\Proxy;
 use Doctrine\ORM\UnitOfWork;
 use GpsLab\Bundle\DomainEvent\Service\EventPuller;
+use GpsLab\Bundle\DomainEvent\Tests\Fixtures\SimpleObject;
+use GpsLab\Bundle\DomainEvent\Tests\Fixtures\SimpleObjectProxy;
 use GpsLab\Domain\Event\Aggregator\AggregateEvents;
 use GpsLab\Domain\Event\Event;
 use PHPUnit\Framework\TestCase;
@@ -115,16 +116,16 @@ class EventPullerTest extends TestCase
 
             $map = [
                 [
-                    $this->getMockBuilder(Proxy::class)->getMock(),
+                    $this->getMockBuilder(SimpleObjectProxy::class)->getMock(),
                     $aggregator1,
                 ],
                 [
                     $aggregator2,
-                    new \stdClass(),
+                    new SimpleObject(),
                 ],
                 [
-                    new \stdClass(),
-                    $this->getMockBuilder(Proxy::class)->getMock(),
+                    new SimpleObject(),
+                    $this->getMockBuilder(SimpleObjectProxy::class)->getMock(),
                 ],
             ];
         } else {
@@ -188,8 +189,8 @@ class EventPullerTest extends TestCase
         ;
 
         return [
-            $this->getMockBuilder(Proxy::class)->getMock(),
-            new \stdClass(),
+            $this->getMockBuilder(SimpleObjectProxy::class)->getMock(),
+            new SimpleObject(),
             $aggregator1,
             $aggregator2,
         ];
