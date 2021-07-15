@@ -12,58 +12,21 @@ jobs:
             fail-fast: false
             matrix:
                 include:
-                    - php: '5.5'
-                      symfony: '2.8.*'
-                      doctrine: '2.4.*'
-                      phpunit: '4.8.*'
-                    - php: '5.6'
-                      symfony: '2.8.*'
-                      doctrine: '2.4.*'
-                      phpunit: '4.8.*'
-                    - php: '7.0'
-                      symfony: '2.8.*'
-                      doctrine: '2.4.*'
-                      phpunit: '4.8.*'
-                    - php: '7.1'
-                      symfony: '2.8.*'
-                      doctrine: '2.4.*'
-                      phpunit: '6.5.*'
-                    - php: '7.2'
-                      symfony: '2.8.*'
-                      doctrine: '2.4.*'
-                      phpunit: '6.5.*'
-                    - php: '7.3'
-                      symfony: '3.4.*'
-                      doctrine: '2.6.*'
-                      phpunit: '6.5.*'
-                    - php: '7.4'
-                      symfony: '3.4.*'
-                      doctrine: '2.6.*'
-                      phpunit: '6.5.*'
-                    - php: '5.5'
-                      symfony: '2.8.*'
-                      doctrine: '2.5.*'
-                      phpunit: '4.8.*'
                     - php: '7.4'
                       symfony: '4.4.*'
                       doctrine: '2.6.*'
-                      phpunit: '6.5.*'
                     - php: '7.4'
                       symfony: '5.*'
                       doctrine: '2.7.*'
-                      phpunit: '6.5.*'
                     - php: '7.4'
                       symfony: '4.4.*'
                       doctrine: '2.7.*'
-                      phpunit: '6.5.*'
                     - php: '7.4'
                       symfony: '4.4.*'
                       doctrine: '2.8.*'
-                      phpunit: '6.5.*'
-#                    # require PHPUnit >= 8.5.12
-#                    - php: '8.0'
-#                      symfony: '5.*'
-#                      doctrine: '2.*'
+                    - php: '8.0'
+                      symfony: '5.*'
+                      doctrine: '2.*'
 
         steps:
             - name: Checkout
@@ -82,9 +45,6 @@ jobs:
             - name: Install Doctrine
               run: composer require doctrine/orm:"${{ matrix.doctrine }}" --no-update
 
-            - name: Install PHPUnit
-              run: composer require phpunit/phpunit:"${{ matrix.phpunit }}" --no-update
-
             - name: "Install Composer dependencies (highest)"
               uses: "ramsey/composer-install@v1"
               with:
@@ -95,6 +55,7 @@ jobs:
               run: vendor/bin/phpunit --coverage-clover build/coverage-clover.xml
 
             - name: Send coverage results to Scrutinizer CI
+              if: ${{ matrix.php != '8.0' }}
               run: |
                 wget https://scrutinizer-ci.com/ocular.phar
                 php ocular.phar code-coverage:upload --format=php-clover build/coverage-clover.xml

@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 
 /**
  * GpsLab component.
@@ -9,48 +10,26 @@
 
 namespace GpsLab\Bundle\DomainEvent\Tests;
 
-use GpsLab\Bundle\DomainEvent\DependencyInjection\Compiler\EventListenerPass;
 use GpsLab\Bundle\DomainEvent\DependencyInjection\GpsLabDomainEventExtension;
 use GpsLab\Bundle\DomainEvent\GpsLabDomainEventBundle;
 use PHPUnit\Framework\TestCase;
-use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\HttpKernel\Bundle\Bundle;
 
 class GpsLabDomainEventBundleTest extends TestCase
 {
-    /**
-     * @var GpsLabDomainEventBundle
-     */
-    private $bundle;
+    private GpsLabDomainEventBundle $bundle;
 
-    /**
-     * @var ContainerBuilder
-     */
-    private $container;
-
-    protected function setUp()
+    protected function setUp(): void
     {
         $this->bundle = new GpsLabDomainEventBundle();
-        $this->container = new ContainerBuilder();
     }
 
-    public function testCorrectBundle()
+    public function testCorrectBundle(): void
     {
         $this->assertInstanceOf(Bundle::class, $this->bundle);
     }
 
-    public function testBuild()
-    {
-        $this->bundle->build($this->container);
-
-        $has_event_listener_pass = false;
-        foreach ($this->container->getCompiler()->getPassConfig()->getBeforeOptimizationPasses() as $pass) {
-            $has_event_listener_pass = $pass instanceof EventListenerPass ?: $has_event_listener_pass;
-        }
-        $this->assertTrue($has_event_listener_pass);
-    }
-
-    public function testContainerExtension()
+    public function testContainerExtension(): void
     {
         $this->assertInstanceOf(GpsLabDomainEventExtension::class, $this->bundle->getContainerExtension());
     }

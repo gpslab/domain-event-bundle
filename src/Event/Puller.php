@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 
 /**
  * GpsLab component.
@@ -7,43 +8,41 @@
  * @license http://opensource.org/licenses/MIT
  */
 
-namespace GpsLab\Bundle\DomainEvent\Service;
+namespace GpsLab\Bundle\DomainEvent\Event;
 
 use Doctrine\Common\Persistence\Proxy as CommonProxy;
-use Doctrine\Persistence\Proxy;
 use Doctrine\ORM\UnitOfWork;
-use GpsLab\Domain\Event\Aggregator\AggregateEvents;
-use GpsLab\Domain\Event\Event;
+use Doctrine\Persistence\Proxy;
+use GpsLab\Bundle\DomainEvent\Event\Aggregator\AggregateEvents;
+use Symfony\Contracts\EventDispatcher\Event;
 
-class EventPuller
+class Puller
 {
     /**
-     * @param UnitOfWork $uow
-     *
      * @return Event[]
      */
-    public function pull(UnitOfWork $uow)
+    public function pull(UnitOfWork $uow): array
     {
         $events = [];
 
-        $events = array_merge($events, $this->pullFromEntities($uow->getScheduledEntityDeletions()));
-        $events = array_merge($events, $this->pullFromEntities($uow->getScheduledEntityInsertions()));
-        $events = array_merge($events, $this->pullFromEntities($uow->getScheduledEntityUpdates()));
+        $events[] = $this->pullFromEntities($uow->getScheduledEntityDeletions());
+        $events[] = $this->pullFromEntities($uow->getScheduledEntityInsertions());
+        $events[] = $this->pullFromEntities($uow->getScheduledEntityUpdates());
 
         // other entities
         foreach ($uow->getIdentityMap() as $entities) {
-            $events = array_merge($events, $this->pullFromEntities($entities));
+            $events[] = $this->pullFromEntities($entities);
         }
 
-        return $events;
+        return array_merge([], ...$events);
     }
 
     /**
-     * @param array $entities
+     * @param object[] $entities
      *
      * @return Event[]
      */
-    private function pullFromEntities(array $entities)
+    private function pullFromEntities(array $entities): array
     {
         $events = [];
 
@@ -58,10 +57,10 @@ class EventPuller
             }
 
             if ($entity instanceof AggregateEvents) {
-                $events = array_merge($events, $entity->pullEvents());
+                $events[] = $entity->pullEvents();
             }
         }
 
-        return $events;
+        return array_merge([], ...$events);
     }
 }

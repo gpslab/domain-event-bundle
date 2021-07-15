@@ -1,55 +1,37 @@
 <?php
+declare(strict_types=1);
 
 /**
  * GpsLab component.
  *
- * @author    Peter Gribanov <info@peter-gribanov.ru>
- * @copyright Copyright (c) 2011, Peter Gribanov
- * @license   http://opensource.org/licenses/MIT
+ * @author  Peter Gribanov <info@peter-gribanov.ru>
+ * @license http://opensource.org/licenses/MIT
  */
 
 namespace GpsLab\Bundle\DomainEvent\Tests\Fixtures;
 
 class SimpleObject
 {
-    /**
-     * @var string
-     */
-    private $foo;
+    private string $foo;
 
-    /**
-     * @var string
-     */
-    protected $camelCase = 'boo';
+    protected string $camelCase = 'boo';
 
-    /**
-     * @return string
-     */
-    public function getFoo()
+    public function getFoo(): string
     {
         return $this->foo;
     }
 
-    /**
-     * @param string $foo
-     */
-    public function setFoo($foo)
+    public function setFoo(string $foo): void
     {
         $this->foo = $foo;
     }
 
-    /**
-     * @return string
-     */
-    public function getCamelCase()
+    public function getCamelCase(): string
     {
         return $this->camelCase;
     }
 
-    /**
-     * @param string $camelCase
-     */
-    public function setCamelCase($camelCase)
+    public function setCamelCase(string $camelCase): void
     {
         $this->camelCase = $camelCase;
     }
