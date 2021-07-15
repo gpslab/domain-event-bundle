@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 
 /**
  * GpsLab component.
@@ -7,29 +8,27 @@
  * @license http://opensource.org/licenses/MIT
  */
 
-namespace GpsLab\Bundle\DomainEvent\Tests\Service;
+namespace GpsLab\Bundle\DomainEvent\Tests\Event;
 
 use Doctrine\ORM\UnitOfWork;
-use GpsLab\Bundle\DomainEvent\Service\EventPuller;
+use GpsLab\Bundle\DomainEvent\Event\Aggregator\AggregateEvents;
+use GpsLab\Bundle\DomainEvent\Event\Puller;
 use GpsLab\Bundle\DomainEvent\Tests\Fixtures\SimpleObject;
 use GpsLab\Bundle\DomainEvent\Tests\Fixtures\SimpleObjectProxy;
-use GpsLab\Domain\Event\Aggregator\AggregateEvents;
-use GpsLab\Domain\Event\Event;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use Symfony\Contracts\EventDispatcher\Event;
 
-class EventPullerTest extends TestCase
+class PullerTest extends TestCase
 {
     /**
-     * @var \PHPUnit_Framework_MockObject_MockObject|UnitOfWork
+     * @var MockObject&UnitOfWork
      */
-    private $uow;
+    private UnitOfWork $uow;
 
-    /**
-     * @var EventPuller
-     */
-    private $puller;
+    private Puller $puller;
 
-    protected function setUp()
+    protected function setUp(): void
     {
         $this->uow = $this
             ->getMockBuilder(UnitOfWork::class)
@@ -37,13 +36,13 @@ class EventPullerTest extends TestCase
             ->getMock()
         ;
 
-        $this->puller = new EventPuller();
+        $this->puller = new Puller();
     }
 
     /**
-     * @return array
+     * @return Event[][][]
      */
-    public function events()
+    public function provideEvents(): array
     {
         $events1 = [
             $this->getMockBuilder(Event::class)->getMock(),
@@ -88,31 +87,34 @@ class EventPullerTest extends TestCase
     }
 
     /**
-     * @dataProvider events
+     * @dataProvider provideEvents
      *
-     * @param \PHPUnit_Framework_MockObject_MockObject[] $deletions_events
-     * @param \PHPUnit_Framework_MockObject_MockObject[] $insertions_events
-     * @param \PHPUnit_Framework_MockObject_MockObject[] $updates_events
-     * @param \PHPUnit_Framework_MockObject_MockObject[] $map_events
+     * @param Event[] $deletions_events
+     * @param Event[] $insertions_events
+     * @param Event[] $updates_events
+     * @param Event[] $map_events
      */
     public function testPull(
         array $deletions_events,
         array $insertions_events,
         array $updates_events,
         array $map_events
-    ) {
+    ): void {
         if ($map_events) {
-            $slice = round(count($map_events) / 2);
+            $slice = (int) round(count($map_events) / 2);
+
             $aggregator1 = $this->getMockBuilder(AggregateEvents::class)->getMock();
             $aggregator1
                 ->expects($this->once())
                 ->method('pullEvents')
-                ->will($this->returnValue(array_slice($map_events, 0, $slice)));
+                ->willReturn(array_slice($map_events, 0, $slice))
+            ;
             $aggregator2 = $this->getMockBuilder(AggregateEvents::class)->getMock();
             $aggregator2
                 ->expects($this->once())
                 ->method('pullEvents')
-                ->will($this->returnValue(array_slice($map_events, $slice)));
+                ->willReturn(array_slice($map_events, $slice))
+            ;
 
             $map = [
                 [
@@ -135,22 +137,22 @@ class EventPullerTest extends TestCase
         $this->uow
             ->expects($this->once())
             ->method('getScheduledEntityDeletions')
-            ->will($this->returnValue($this->getEntitiesFroEvents($deletions_events)))
+            ->willReturn($this->getEntitiesFroEvents($deletions_events))
         ;
         $this->uow
             ->expects($this->once())
             ->method('getScheduledEntityInsertions')
-            ->will($this->returnValue($this->getEntitiesFroEvents($insertions_events)))
+            ->willReturn($this->getEntitiesFroEvents($insertions_events))
         ;
         $this->uow
             ->expects($this->once())
             ->method('getScheduledEntityUpdates')
-            ->will($this->returnValue($this->getEntitiesFroEvents($updates_events)))
+            ->willReturn($this->getEntitiesFroEvents($updates_events))
         ;
         $this->uow
             ->expects($this->once())
             ->method('getIdentityMap')
-            ->will($this->returnValue($map))
+            ->willReturn($map)
         ;
 
         $expected_events = array_merge(
@@ -168,24 +170,25 @@ class EventPullerTest extends TestCase
      *
      * @return object[]
      */
-    private function getEntitiesFroEvents(array $events)
+    private function getEntitiesFroEvents(array $events): array
     {
         if (!$events) {
             return [];
         }
 
-        $slice = round(count($events) / 2);
+        $slice = (int) round(count($events) / 2);
+
         $aggregator1 = $this->getMockBuilder(AggregateEvents::class)->getMock();
         $aggregator1
             ->expects($this->once())
             ->method('pullEvents')
-            ->will($this->returnValue(array_slice($events, 0, $slice)))
+            ->willReturn(array_slice($events, 0, $slice))
         ;
         $aggregator2 = $this->getMockBuilder(AggregateEvents::class)->getMock();
         $aggregator2
             ->expects($this->once())
             ->method('pullEvents')
-            ->will($this->returnValue(array_slice($events, $slice)))
+            ->willReturn(array_slice($events, $slice))
         ;
 
         return [

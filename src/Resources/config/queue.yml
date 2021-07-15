@@ -1,8 +1,0 @@
-services:
-    domain_event.queue.pull_memory:
-        class: GpsLab\Domain\Event\Queue\Pull\MemoryPullEventQueue
-        public: false
-
-    domain_event.queue.subscribe_executing:
-        class: GpsLab\Domain\Event\Queue\Subscribe\ExecutingSubscribeEventQueue
-        public: false

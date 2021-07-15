@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 
 /**
  * GpsLab component.
@@ -9,27 +10,15 @@
 
 namespace GpsLab\Bundle\DomainEvent;
 
-use GpsLab\Bundle\DomainEvent\DependencyInjection\Compiler\EventListenerPass;
 use GpsLab\Bundle\DomainEvent\DependencyInjection\GpsLabDomainEventExtension;
-use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\Extension\ExtensionInterface;
 use Symfony\Component\HttpKernel\Bundle\Bundle;
 
 class GpsLabDomainEventBundle extends Bundle
 {
-    /**
-     * @param ContainerBuilder $container
-     */
-    public function build(ContainerBuilder $container)
+    public function getContainerExtension(): ?ExtensionInterface
     {
-        $container->addCompilerPass(new EventListenerPass());
-    }
-
-    /**
-     * @return GpsLabDomainEventExtension
-     */
-    public function getContainerExtension()
-    {
-        if (!($this->extension instanceof GpsLabDomainEventExtension)) {
+        if (!$this->extension instanceof GpsLabDomainEventExtension) {
             $this->extension = new GpsLabDomainEventExtension();
         }
 
