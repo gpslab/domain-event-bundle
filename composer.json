@@ -12,7 +12,10 @@
     "autoload-dev": {
         "psr-4": {
             "GpsLab\\Bundle\\DomainEvent\\Tests\\": "tests/"
-        }
+        },
+        "classmap": [
+            "tests/Fixtures/Event/Acme_Demo_PurchaseOrderCreated.php"
+        ]
     },
     "require": {
         "php": ">=7.4.0",
